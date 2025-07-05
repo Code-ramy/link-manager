@@ -41,7 +41,7 @@ const FilterButton = ({
   <button
     data-filter={filter}
     className={cn(
-      'filter-btn py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
+      'filter-btn font-headline py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
       currentFilter === filter ? 'active-btn' : ''
     )}
     onClick={() => onClick(filter)}
@@ -116,7 +116,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
                 <header className="text-center mb-16 mt-8">
-                    <h1 className="font-headline text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}>
+                    <h1 className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}>
                         آخر تطورات Google في الذكاء الاصطناعي
                     </h1>
                 </header>
@@ -155,12 +155,12 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                                 <h3 className="font-headline font-bold text-xl text-white mb-3 h-16">{item.title}</h3>
                                 <p className="text-gray-400 text-sm leading-relaxed h-20">{item.shortDesc}</p>
                             </div>
-                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-500">
-                                <span className="font-semibold flex items-center gap-2">
+                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                <span className="font-semibold flex items-center gap-2 text-yellow-400">
                                   <Icon svg={icons.source}/>
                                   <span>{item.source}</span>
                                 </span>
-                                <span className="flex items-center gap-1.5">
+                                <span className="flex items-center gap-1.5 text-green-400">
                                   <Icon svg={icons.date}/>
                                   <span>{item.date}</span>
                                 </span>
