@@ -82,7 +82,6 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
       style={style}
       {...attributes}
       {...listeners}
-      layout="position"
       variants={itemVariants}
     >
       <div
