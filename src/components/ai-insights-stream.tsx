@@ -64,7 +64,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <div
         className={cn(
-          'transition-all duration-200 ease-in-out',
+          'transition-transform duration-200 ease-in-out',
           isDragging
             ? 'scale-110 shadow-2xl'
             : 'scale-100 shadow-none'
@@ -383,7 +383,9 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
           )}
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-            <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-lg" />
+            <div className="w-full h-full rounded-lg overflow-hidden">
+              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
+            </div>
           ) : (
             getIcon(app.icon, { className: "w-9 h-9 text-white" })
           )}
