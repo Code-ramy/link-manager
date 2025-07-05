@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Link as LinkIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -51,58 +52,71 @@ const FilterButton = ({
   </button>
 );
 
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.05,
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  }),
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      duration: 0.2,
+      ease: "easeIn",
+    },
+  },
+};
+
+const modalBackdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 },
+};
+
+const modalContentVariants = {
+    hidden: { scale: 0.95, opacity: 0 },
+    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 30 } },
+    exit: { scale: 0.95, opacity: 0, transition: { duration: 0.2 } },
+};
+
+
 export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
     const [currentFilter, setCurrentFilter] = useState('all');
-    const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>([]);
+    const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>(developments);
     const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isModalClosing, setIsModalClosing] = useState(false);
-    const [cardsLoading, setCardsLoading] = useState(true);
 
     useEffect(() => {
-        setFilteredDevelopments(developments);
-        setCardsLoading(false);
-    }, [developments]);
-
-    useEffect(() => {
-        setCardsLoading(true);
-        const timer = setTimeout(() => {
-            const data = currentFilter === 'all' 
-                ? developments 
-                : developments.filter(item => item.category === currentFilter);
-            setFilteredDevelopments(data);
-            setCardsLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
+        if (currentFilter === 'all') {
+            setFilteredDevelopments(developments);
+        } else {
+            setFilteredDevelopments(developments.filter(item => item.category === currentFilter));
+        }
     }, [currentFilter, developments]);
-
-    const handleFilterClick = (filter: string) => {
-        setCurrentFilter(filter);
-    };
 
     const handleCardClick = (item: AiDevelopment) => {
         setSelectedItem(item);
-        setIsModalOpen(true);
-        setIsModalClosing(false);
     };
 
     const closeModal = () => {
-        setIsModalClosing(true);
-        setTimeout(() => {
-            setIsModalOpen(false);
-            setSelectedItem(null);
-        }, 300);
+        setSelectedItem(null);
     };
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && isModalOpen) {
+            if (e.key === "Escape" && selectedItem) {
                 closeModal();
             }
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isModalOpen]);
+    }, [selectedItem]);
 
     const filters = [
       { key: 'all', text: 'الكل' },
@@ -116,9 +130,15 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
                 <header className="text-center mb-16 mt-8">
-                    <h1 className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4" 
+                        style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}
+                    >
                         آخر تطورات Google في الذكاء الاصطناعي
-                    </h1>
+                    </motion.h1>
                 </header>
                 
                 <div className="flex flex-col items-center gap-6 mb-12">
@@ -128,7 +148,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                             key={f.key}
                             filter={f.key}
                             currentFilter={currentFilter}
-                            onClick={handleFilterClick}
+                            onClick={setCurrentFilter}
                             text={f.text}
                             icon={f.icon}
                           />
@@ -136,92 +156,118 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     </nav>
                 </div>
 
-                <main id="cards-container" className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 cards-container', { 'loading': cardsLoading })}>
-                    {filteredDevelopments.map((item, index) => (
-                        <div 
-                            key={`${item.title}-${index}`} 
-                            className="glass-card p-6 flex flex-col justify-between cursor-pointer fade-in-up"
-                            style={{ animationDelay: `${index * 70}ms` }}
-                            onClick={() => handleCardClick(item)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && handleCardClick(item)}
-                        >
-                            <div>
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-xs font-medium px-3 py-1 rounded-md bg-black/20 text-gray-300 border border-white/10">{getCategoryText(item.category)}</span>
-                                    <Icon svg={item.icon} className="text-gray-400" />
+                <motion.main 
+                    layout 
+                    id="cards-container" 
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                >
+                    <AnimatePresence>
+                        {filteredDevelopments.map((item, index) => (
+                            <motion.div 
+                                layout
+                                key={`${item.title}-${index}`} 
+                                variants={cardVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                custom={index}
+                                className="glass-card p-6 flex flex-col justify-between cursor-pointer"
+                                onClick={() => handleCardClick(item)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && handleCardClick(item)}
+                            >
+                                <div>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-xs font-medium px-3 py-1 rounded-md bg-black/20 text-gray-300 border border-white/10">{getCategoryText(item.category)}</span>
+                                        <Icon svg={item.icon} className="text-gray-400" />
+                                    </div>
+                                    <h3 className="font-headline font-bold text-xl text-white mb-3 h-16">{item.title}</h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed h-20">{item.shortDesc}</p>
                                 </div>
-                                <h3 className="font-headline font-bold text-xl text-white mb-3 h-16">{item.title}</h3>
-                                <p className="text-gray-400 text-sm leading-relaxed h-20">{item.shortDesc}</p>
-                            </div>
-                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
-                                <span className="font-semibold flex items-center gap-2 text-yellow-400">
-                                  <Icon svg={icons.source}/>
-                                  <span>{item.source}</span>
-                                </span>
-                                <span className="flex items-center gap-1.5 text-green-400">
-                                  <Icon svg={icons.date}/>
-                                  <span>{item.date}</span>
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </main>
+                                <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-2 text-yellow-400">
+                                      <Icon svg={icons.source}/>
+                                      <span>{item.source}</span>
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-green-400">
+                                      <Icon svg={icons.date}/>
+                                      <span>{item.date}</span>
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </motion.main>
             </div>
             
-            {isModalOpen && selectedItem && (
-                <div id="modal-backdrop" className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/50" style={{ backdropFilter: 'blur(5px)' }} onClick={closeModal}>
-                    <div 
-                        id="modal-content" 
-                        className={cn('modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto', isModalClosing ? 'modal-closing' : 'modal-opening')}
-                        onClick={(e) => e.stopPropagation()}
+            <AnimatePresence>
+                {selectedItem && (
+                    <motion.div 
+                        id="modal-backdrop" 
+                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/50" 
+                        style={{ backdropFilter: 'blur(5px)' }} 
+                        onClick={closeModal}
+                        variants={modalBackdropVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                     >
-                        <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-gray-300 hover:text-white transition rounded-full h-8 w-8" onClick={closeModal}>
-                            <X className="h-5 w-5" />
-                        </Button>
-                        <div id="modal-body">
-                            <div className="flex flex-col gap-4 pb-4 border-b border-white/10">
-                                <div className="flex items-center gap-4">
-                                    <span className="bg-gradient-to-br from-primary/30 to-accent/30 p-3 rounded-xl text-white">
-                                        <Icon svg={selectedItem.icon.replace('width="20"','width="28"').replace('height="20"','height="28"')} />
-                                    </span>
-                                    <div>
-                                        <h2 className="font-headline text-xl sm:text-2xl font-bold text-white">{selectedItem.title}</h2>
-                                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                                            <p className="font-semibold flex items-center gap-2"><Icon svg={icons.source} /><span>{selectedItem.source}</span></p>
-                                            <p className="flex items-center gap-2"><Icon svg={icons.date} /><span>{selectedItem.date}</span></p>
+                        <motion.div 
+                            id="modal-content" 
+                            className="modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
+                            onClick={(e) => e.stopPropagation()}
+                            variants={modalContentVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                        >
+                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-gray-300 hover:text-white transition rounded-full h-8 w-8" onClick={closeModal}>
+                                <X className="h-5 w-5" />
+                            </Button>
+                            <div id="modal-body">
+                                <div className="flex flex-col gap-4 pb-4 border-b border-white/10">
+                                    <div className="flex items-center gap-4">
+                                        <span className="bg-gradient-to-br from-primary/30 to-accent/30 p-3 rounded-xl text-white">
+                                            <Icon svg={selectedItem.icon.replace('width="20"','width="28"').replace('height="20"','height="28"')} />
+                                        </span>
+                                        <div>
+                                            <h2 className="font-headline text-xl sm:text-2xl font-bold text-white">{selectedItem.title}</h2>
+                                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                                                <p className="font-semibold flex items-center gap-2"><Icon svg={icons.source} /><span>{selectedItem.source}</span></p>
+                                                <p className="flex items-center gap-2"><Icon svg={icons.date} /><span>{selectedItem.date}</span></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="py-6 space-y-4">
-                                {selectedItem.details.map((detail, index) => (
-                                    <div key={index} className="flex items-start gap-4">
-                                        <div className="relative flex-shrink-0 mt-1.5">
-                                            <div className="absolute top-2.5 right-1/2 translate-x-1/2 h-full w-0.5 bg-primary/30 rounded-full"></div>
-                                            <Check className="relative z-10 w-5 h-5 text-primary bg-[#171424] p-0.5 rounded-full" />
+                                
+                                <div className="py-6 space-y-4">
+                                    {selectedItem.details.map((detail, index) => (
+                                        <div key={index} className="flex items-start gap-4">
+                                            <div className="relative flex-shrink-0 mt-1.5">
+                                                <div className="absolute top-2.5 right-1/2 translate-x-1/2 h-full w-0.5 bg-primary/30 rounded-full"></div>
+                                                <Check className="relative z-10 w-5 h-5 text-primary bg-[#171424] p-0.5 rounded-full" />
+                                            </div>
+                                            <div className="w-full">
+                                                <FormattedText text={detail} />
+                                            </div>
                                         </div>
-                                        <div className="w-full">
-                                            <FormattedText text={detail} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
 
-                            {selectedItem.link && selectedItem.link !== '#' && (
-                                <div className="mt-2 pt-6 border-t border-white/10 flex justify-center">
-                                    <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 inline-flex items-center gap-2">
-                                        <span>اقرأ المصدر</span>
-                                        <LinkIcon className="h-4 w-4" />
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+                                {selectedItem.link && selectedItem.link !== '#' && (
+                                    <div className="mt-2 pt-6 border-t border-white/10 flex justify-center">
+                                        <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 inline-flex items-center gap-2">
+                                            <span>اقرأ المصدر</span>
+                                            <LinkIcon className="h-4 w-4" />
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
