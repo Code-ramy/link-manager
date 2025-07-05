@@ -383,8 +383,8 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
           )}
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-            <div className="w-full h-full rounded-lg overflow-hidden">
-              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
+            <div className="w-full h-full p-1">
+              <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-lg" />
             </div>
           ) : (
             getIcon(app.icon, { className: "w-9 h-9 text-white" })
@@ -430,16 +430,17 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   });
 
   const moveMarker = useCallback(() => {
-    const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
-    if (!filterNavRef.current || !markerRef.current || !activeBtn) return;
-
+    if (!filterNavRef.current) return;
+    const activeBtn = filterNavRef.current.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
+    if (!markerRef.current || !activeBtn) return;
+  
     const navRect = filterNavRef.current.getBoundingClientRect();
     const targetRect = activeBtn.getBoundingClientRect();
-    const offsetX = targetRect.left - navRect.left;
-
+    
     markerRef.current.style.width = `${targetRect.width}px`;
     markerRef.current.style.height = `${targetRect.height}px`;
-    markerRef.current.style.transform = `translateX(${offsetX}px)`;
+    markerRef.current.style.transform = `translateX(${targetRect.left - navRect.left}px)`;
+    
   }, [currentFilter]);
 
   useEffect(() => {
@@ -449,9 +450,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       window.removeEventListener('resize', moveMarker);
     };
   }, [currentFilter, categories, moveMarker]);
-
+  
   const handleFilterClick = (filter: string) => {
-    if (filter === currentFilter) return;
     setCurrentFilter(filter);
   };
 
@@ -535,7 +535,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             >
               <div
                 ref={markerRef}
-                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-primary transition-all duration-500"
+                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-primary/80 backdrop-blur-sm transition-all duration-500"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
               ></div>
               <button
