@@ -73,8 +73,8 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
         className={cn(
           'transition-transform duration-200',
           isDragging
-            ? 'scale-105 -rotate-1 shadow-xl'
-            : 'scale-100 rotate-0 shadow-none'
+            ? 'scale-105 shadow-xl'
+            : 'scale-100 shadow-none'
         )}
       >
         {children}
