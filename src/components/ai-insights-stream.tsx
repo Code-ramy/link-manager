@@ -3,7 +3,7 @@
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { Category, WebApp } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,14 +49,15 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 150,
+      duration: 100, // Faster animation
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
   
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    // Apply transition only when not dragging for smoother cursor follow
+    transition: isDragging ? 'none' : transition,
   };
 
   return (
@@ -66,6 +67,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
+        // Add a subtle lift and shadow effect when dragging
         isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
       )}
     >
@@ -339,9 +341,32 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 }
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+  const wasDragged = useRef(false);
+
+  useEffect(() => {
+    if (isDragging) {
+      wasDragged.current = true;
+    }
+  }, [isDragging]);
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (wasDragged.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    // Reset the flag after any click attempt to allow for the next clean click.
+    wasDragged.current = false;
+  };
+
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <a href={isDragging ? undefined : app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16">
+      <a href={app.url} 
+         onClick={handleClick}
+         target="_blank" 
+         rel="noopener noreferrer" 
+         className="block w-16 h-16"
+         draggable="false"
+      >
          <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
@@ -372,8 +397,9 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
   const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
   const [currentFilter, setCurrentFilter] = useState('all');
-  const [isDragging, setIsDragging] = useState(false);
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+  
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
   const [isEditAppOpen, setIsEditAppOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState<WebApp | null>(null);
@@ -444,12 +470,12 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const handleAppDragStart = () => {
-    setIsDragging(true);
+  const handleAppDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
-    setIsDragging(false);
+    setActiveId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setApps((items) => {
@@ -533,7 +559,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             collisionDetector={closestCenter} 
             onDragStart={handleAppDragStart}
             onDragEnd={handleAppDragEnd}
-            onDragCancel={() => setIsDragging(false)}
+            onDragCancel={() => setActiveId(null)}
           >
             <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
@@ -543,7 +569,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                       app={app}
                       onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
-                      isDragging={isDragging}
+                      isDragging={activeId === app.id}
                     />
                   </SortableItem>
                 ))}
