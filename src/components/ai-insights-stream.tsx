@@ -39,41 +39,33 @@ const getIcon = (name: string, props: any = {}) => {
   return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
 };
 
-const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
+const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging,
   } = useSortable({
     id,
     transition: {
-      duration: 350, // A duration that feels quick but allows for the animation to be seen
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)', // A smooth "ease-out" curve
+      duration: 350,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    // Apply the transition to all items except the one being dragged
-    // This makes the dragged item follow the cursor instantly
-    transition: isDragging ? undefined : transition,
-    zIndex: isDragging ? 10 : 'auto',
-    position: 'relative' as React.CSSProperties['position'],
+    transition: isDragging ? 'none' : transition,
   };
 
   return (
-    // This is the wrapper that dnd-kit uses for layout calculations and event listeners.
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {/* This inner div is for purely visual animations (the "lift" effect),
-          preventing conflicts with the layout transform. */}
       <div
         className={cn(
-          'transition-transform duration-200',
+          'transition-all duration-200 ease-in-out',
           isDragging
-            ? 'scale-105 shadow-xl'
+            ? 'scale-110 shadow-2xl'
             : 'scale-100 shadow-none'
         )}
       >
@@ -82,7 +74,6 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     </div>
   );
 };
-
 
 const getFaviconUrl = (url: string) => {
   try {
@@ -286,7 +277,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
           <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={internalCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {internalCategories.map(c => (
-                <SortableItem key={c.id} id={c.id}>
+                <SortableItem key={c.id} id={c.id} isDragging={false}>
                   <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
                     <div className="flex items-center gap-3">
                       <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
@@ -348,22 +339,26 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, onDelete: () => void }) => {
+const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <a 
+      <a
          href={app.url} 
          target="_blank" 
          rel="noopener noreferrer" 
          className="block w-16 h-16"
          draggable="false"
       >
-         <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
-            {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
-            ) : (
-              getIcon(app.icon, { className: "w-9 h-9 text-white" })
-            )}
+        <div
+          className={cn(
+            'w-full h-full transition-transform duration-200 ease-in-out flex items-center justify-center'
+          )}
+        >
+          {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
+            <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-lg" />
+          ) : (
+            getIcon(app.icon, { className: "w-9 h-9 text-white" })
+          )}
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
@@ -567,11 +562,12 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
                 {filteredApps.map((app) => (
-                  <SortableItem key={app.id} id={app.id}>
+                  <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
                     <AppIcon
                       app={app}
                       onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
+                      isDragging={activeId === app.id}
                     />
                   </SortableItem>
                 ))}
