@@ -39,13 +39,37 @@ const getIcon = (name: string, props: any = {}) => {
 };
 
 const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id,
+    transition: {
+      duration: 300,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    },
+  });
+  
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition,
+    transition,
   };
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        'transition-all duration-200',
+        isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
+      )}
+    >
       {children}
     </div>
   );
@@ -126,9 +150,9 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex items-center justify-center flex-col gap-4">
-               <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+               <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden">
                 {iconPreview ? (
-                    <img src={iconPreview} alt="Preview" className="w-full h-full object-contain rounded-2xl" />
+                    <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
                     <LucideIcons.ImageIcon className="w-10 h-10 text-muted-foreground" />
                 )}
@@ -190,7 +214,9 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   const [internalCategories, setInternalCategories] = useState(categories);
 
   useEffect(() => {
-    setInternalCategories(categories);
+    if (open) {
+      setInternalCategories(categories);
+    }
   }, [categories, open]);
   
   const form = useForm<z.infer<typeof categorySchema>>({
@@ -313,18 +339,22 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, onDelete: () => void }) => {
+const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <a href={app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16">
-         <div className="w-full h-full rounded-2xl p-1 transition-all duration-300 group-hover:scale-110">
-          <div className="w-full h-full flex items-center justify-center overflow-hidden">
+      <a href={app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16" onClick={handleClick}>
+         <div className="w-full h-full rounded-full p-1 transition-all duration-300 group-hover:scale-110 flex items-center justify-center overflow-hidden">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             ) : (
               getIcon(app.icon, { className: "w-9 h-9 text-white" })
             )}
-          </div>
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
@@ -349,6 +379,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
   const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
   const [currentFilter, setCurrentFilter] = useState('all');
+  const [isDragging, setIsDragging] = useState(false);
 
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
   const [isEditAppOpen, setIsEditAppOpen] = useState(false);
@@ -420,7 +451,12 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
+  const handleAppDragStart = () => {
+    setIsDragging(true);
+  };
+
   const handleAppDragEnd = (event: DragEndEvent) => {
+    setIsDragging(false);
     const { active, over } = event;
     if (active.id !== over?.id) {
       setApps((items) => {
@@ -499,7 +535,13 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </div>
 
         <main className="pb-20">
-          <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleAppDragEnd}>
+          <DndContext 
+            sensors={sensors} 
+            collisionDetector={closestCenter} 
+            onDragStart={handleAppDragStart}
+            onDragEnd={handleAppDragEnd}
+            onDragCancel={() => setIsDragging(false)}
+          >
             <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
                 {filteredApps.map((app) => (
@@ -508,6 +550,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                       app={app}
                       onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
+                      isDragging={isDragging}
                     />
                   </SortableItem>
                 ))}
