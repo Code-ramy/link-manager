@@ -49,7 +49,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 300,
+      duration: 150,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
@@ -66,7 +66,6 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
-        'transition-all duration-200',
         isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
       )}
     >
@@ -150,7 +149,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex items-center justify-center flex-col gap-4">
-               <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden">
+               <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden bg-white/10">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
@@ -340,16 +339,10 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 }
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    if (isDragging) {
-      e.preventDefault();
-    }
-  };
-
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <a href={app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16" onClick={handleClick}>
-         <div className="w-full h-full rounded-full p-1 transition-all duration-300 group-hover:scale-110 flex items-center justify-center overflow-hidden">
+      <a href={isDragging ? undefined : app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16">
+         <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             ) : (
@@ -458,10 +451,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const handleAppDragEnd = (event: DragEndEvent) => {
     setIsDragging(false);
     const { active, over } = event;
-    if (active.id !== over?.id) {
+    if (over && active.id !== over.id) {
       setApps((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over!.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
