@@ -27,22 +27,15 @@ const FormattedText = ({ text }: { text: string }) => {
 // --- Main Component ---
 export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
     const [currentFilter, setCurrentFilter] = useState('all');
-    const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>([]);
     const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
-    const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
     const filterNavRef = useRef<HTMLDivElement>(null);
     const markerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        // Only update the list of developments when not in the middle of a fade-out animation
-        if (!isAnimatingOut) {
-            const newFiltered = currentFilter === 'all'
-                ? developments
-                : developments.filter(item => item.category === currentFilter);
-            setFilteredDevelopments(newFiltered);
-        }
-    }, [currentFilter, developments, isAnimatingOut]);
+    // Filter developments directly based on the current filter state
+    const filteredDevelopments = currentFilter === 'all'
+        ? developments
+        : developments.filter(item => item.category === currentFilter);
     
     const filters = React.useMemo(() => [
         { key: 'all', text: 'الكل' },
@@ -83,13 +76,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
 
     const handleFilterClick = (filter: string) => {
         if (filter === currentFilter) return;
-
-        setIsAnimatingOut(true);
-        // Wait for the fade-out animation to complete, then update the filter and fade back in.
-        setTimeout(() => {
-            setCurrentFilter(filter);
-            setIsAnimatingOut(false);
-        }, 300);
+        setCurrentFilter(filter);
     };
 
     const handleCardClick = (item: AiDevelopment) => {
@@ -119,6 +106,26 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
       visible: { opacity: 1 },
       exit: { opacity: 0 },
     };
+
+    const containerVariants = {
+        hidden: { opacity: 1 }, // Start with opacity 1 to avoid initial flash
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.07, // This creates the sequential animation for children
+            },
+        },
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6, ease: 'easeOut' },
+        },
+    };
+
 
     return (
         <>
@@ -158,16 +165,16 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                 </div>
 
                 <motion.main 
+                    key={currentFilter} // IMPORTANT: Re-triggers the animation when the filter changes
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                    animate={{ opacity: isAnimatingOut ? 0 : 1, y: isAnimatingOut ? 10 : 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
-                    {filteredDevelopments.map((item, index) => (
+                    {filteredDevelopments.map((item) => (
                         <motion.div 
                             key={item.title} 
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.07, duration: 0.6, ease: 'easeOut' }}
+                            variants={cardVariants} // Variants are controlled by the parent's staggerChildren
                             className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer"
                             onClick={() => handleCardClick(item)}
                         >
