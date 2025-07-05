@@ -1,260 +1,499 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getCategoryText, icons } from '@/lib/data';
-import type { AiDevelopment } from '@/lib/types';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import type { Category, WebApp } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as LucideIcons from "lucide-react";
+import { CSS } from '@dnd-kit/utilities';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useForm } from "react-hook-form";
+import { useDebounce } from 'use-debounce';
+import { z } from "zod";
 
-// --- Formatted Text Component ---
-const FormattedText = ({ text }: { text: string }) => {
-  const parts = text.split(/\*\*(.*?)\*\*/g);
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from '@/hooks/use-toast';
+
+const appSchema = z.object({
+  name: z.string().min(1, "اسم التطبيق مطلوب"),
+  url: z.string().url("رابط غير صالح"),
+  icon: z.string().min(1, "الأيقونة مطلوبة"),
+  categoryId: z.string(),
+});
+
+const categorySchema = z.object({
+  name: z.string().min(1, "اسم الفئة مطلوب"),
+  icon: z.string().min(1, "الأيقونة مطلوبة"),
+});
+
+const getIcon = (name: string, props: any = {}) => {
+  const Icon = (LucideIcons as any)[name];
+  return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
+};
+
+const SortableItem = ({ id, children }: { id: string, children: React.ReactNode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   return (
-    <p className="text-gray-300 leading-relaxed">
-      {parts.map((part, index) =>
-        index % 2 === 1 ? (
-          <strong key={index} className="text-white font-medium">
-            {part}
-          </strong>
-        ) : (
-          <React.Fragment key={index}>{part}</React.Fragment>
-        )
-      )}
-    </p>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
   );
 };
 
-// --- Main Component ---
-export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
+const getFaviconUrl = (url: string) => {
+    try {
+        const domain = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+    } catch (e) {
+        return '';
+    }
+};
+
+function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, categories: Category[], onSave: (data: WebApp) => void, children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const form = useForm<z.infer<typeof appSchema>>({
+    resolver: zodResolver(appSchema),
+    defaultValues: app || { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' },
+  });
+  
+  const [urlToFetch] = useDebounce(form.watch('url'), 500);
+  const [iconPreview, setIconPreview] = useState(app?.icon || '');
+
+  useEffect(() => {
+    if (app) {
+      form.reset(app);
+      setIconPreview(app.icon);
+    }
+  }, [app, form]);
+
+  useEffect(() => {
+    const newFavicon = getFaviconUrl(urlToFetch);
+    if(newFavicon && (!app || urlToFetch !== app.url)) {
+        setIconPreview(newFavicon);
+        form.setValue('icon', newFavicon);
+    }
+  }, [urlToFetch, app, form]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setIconPreview(dataUrl);
+        form.setValue('icon', dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = (data: z.infer<typeof appSchema>) => {
+    onSave({ ...data, id: app?.id || crypto.randomUUID() });
+    setOpen(false);
+    form.reset();
+    setIconPreview('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] modal-card" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
+          <DialogDescription>
+            املأ التفاصيل أدناه. سيتم جلب الأيقونة تلقائيًا عند إدخال رابط صالح.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex items-center gap-4">
+                {iconPreview ? (
+                     <img src={iconPreview} alt="Preview" className="w-16 h-16 rounded-2xl object-cover bg-white/10" />
+                ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+                        <LucideIcons.ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                )}
+                <Input type="file" accept="image/*" onChange={handleFileChange} className="flex-1" />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem><FormLabel>اسم التطبيق</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="url"
+              render={({ field }) => (
+                <FormItem><FormLabel>الرابط</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>الفئة</FormLabel>
+                   <select {...field} className="w-full p-2 rounded-md bg-input border border-border">
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                   </select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit">حفظ</Button>
+              <DialogClose asChild><Button variant="outline">إلغاء</Button></DialogClose>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManageCategoriesDialog({ categories, setCategories, children }: { categories: Category[], setCategories: (cats: Category[]) => void, children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  const form = useForm<z.infer<typeof categorySchema>>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: '', icon: 'Globe' },
+  });
+  
+  const iconList = Object.keys(LucideIcons).filter(k => k.match(/^[A-Z]/));
+
+  const handleSave = (data: z.infer<typeof categorySchema>) => {
+    if (editingCategory) {
+      setCategories(categories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c));
+    } else {
+      setCategories([...categories, { ...data, id: crypto.randomUUID() }]);
+    }
+    setEditingCategory(null);
+    form.reset({ name: '', icon: 'Globe' });
+  };
+  
+  const handleDelete = (id: string) => {
+    // Also delete apps in this category
+    setCategories(categories.filter(c => c.id !== id));
+  }
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIndex = categories.findIndex((c) => c.id === active.id);
+      const newIndex = categories.findIndex((c) => c.id === over!.id);
+      setCategories(arrayMove(categories, oldIndex, newIndex));
+    }
+  };
+  
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="modal-card">
+        <DialogHeader>
+          <DialogTitle>إدارة الفئات</DialogTitle>
+          <DialogDescription>إضافة، تعديل، حذف، وإعادة ترتيب الفئات الخاصة بك.</DialogDescription>
+        </DialogHeader>
+        
+        <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
+            <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={categories.map(c => c.id)} strategy={rectSortingStrategy}>
+                    {categories.map(c => (
+                        <SortableItem key={c.id} id={c.id}>
+                            <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background">
+                                <div className="flex items-center gap-2">
+                                    {getIcon(c.icon)}
+                                    <span>{c.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingCategory(c); form.reset(c); }}>
+                                        <LucideIcons.Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
+                                        <LucideIcons.Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </SortableItem>
+                    ))}
+                </SortableContext>
+            </DndContext>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 pt-4 border-t border-white/10">
+            <h4 className="font-bold">{editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}</h4>
+            <div className="flex gap-4">
+                <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem className="flex-1"><FormLabel>اسم الفئة</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="icon" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الأيقونة</FormLabel>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-[100px] justify-between">
+                            <span>{field.value}</span>
+                            {getIcon(field.value, {className: "w-4 h-4"})}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="max-h-60 overflow-y-auto">
+                            {iconList.map(iconName => (
+                                <DropdownMenuItem key={iconName} onSelect={() => form.setValue('icon', iconName)}>
+                                    {getIcon(iconName, {className: "w-4 h-4 mr-2"})}
+                                    <span>{iconName}</span>
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </FormItem>
+                )} />
+            </div>
+            <DialogFooter>
+              <Button type="submit">حفظ الفئة</Button>
+              {editingCategory && <Button variant="outline" onClick={() => { setEditingCategory(null); form.reset({name: '', icon: 'Globe'}); }}>إلغاء التعديل</Button>}
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, onDelete: () => void }) => {
+    return (
+        <div className="relative group flex flex-col items-center gap-2 text-center">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                     <a href={app.url} target="_blank" rel="noopener noreferrer" className="block">
+                        <div className="w-20 h-20 rounded-[28px] bg-black/20 p-1 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-blue-500/30">
+                            <div className="w-full h-full rounded-[22px] bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center overflow-hidden">
+                                {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
+                                    <img src={app.icon} alt={app.name} className="w-full h-full object-cover"/>
+                                ) : (
+                                    getIcon(app.icon, {className: "w-10 h-10 text-white"})
+                                )}
+                            </div>
+                        </div>
+                     </a>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={onEdit}>تعديل</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={onDelete} className="text-destructive">حذف</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
+        </div>
+    )
+};
+
+
+export function AiInsightsStream({ initialApps, initialCategories }: { initialApps: WebApp[], initialCategories: Category[] }) {
+    const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
+    const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
     const [currentFilter, setCurrentFilter] = useState('all');
-    const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
+    
+    const [editingApp, setEditingApp] = useState<WebApp | null>(null);
+    const [appToDelete, setAppToDelete] = useState<WebApp | null>(null);
 
     const filterNavRef = useRef<HTMLDivElement>(null);
     const markerRef = useRef<HTMLDivElement>(null);
 
-    // Filter developments directly based on the current filter state
-    const filteredDevelopments = currentFilter === 'all'
-        ? developments
-        : developments.filter(item => item.category === currentFilter);
-    
-    const filters = React.useMemo(() => [
-        { key: 'all', text: 'الكل' },
-        { key: 'official', text: 'رسمي', icon: icons.official },
-        { key: 'tools', text: 'أدوات', icon: icons.tools },
-        { key: 'products', text: 'منتجات', icon: icons.products },
-        { key: 'community', text: 'مجتمعي', icon: icons.community },
-    ], []);
+    const filteredApps = apps.filter(app => {
+        if (currentFilter === 'all') return true;
+        return app.categoryId === currentFilter;
+    });
 
-    const moveMarker = (targetButton: HTMLElement) => {
-        if (!filterNavRef.current || !markerRef.current) return;
+    const moveMarker = useCallback(() => {
+        const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
+        if (!filterNavRef.current || !markerRef.current || !activeBtn) return;
+        
         const navRect = filterNavRef.current.getBoundingClientRect();
-        const targetRect = targetButton.getBoundingClientRect();
+        const targetRect = activeBtn.getBoundingClientRect();
         const offsetX = targetRect.left - navRect.left;
         
         markerRef.current.style.width = `${targetRect.width}px`;
         markerRef.current.style.height = `${targetRect.height}px`;
         markerRef.current.style.transform = `translateX(${offsetX}px)`;
-    };
-    
-    useEffect(() => {
-        const calculateAndMoveMarker = () => {
-            const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
-            if (activeBtn) {
-                moveMarker(activeBtn);
-            }
-        };
+    }, [currentFilter]);
 
-        const timer = setTimeout(calculateAndMoveMarker, 50);
-        window.addEventListener('resize', calculateAndMoveMarker);
+    useEffect(() => {
+        const timer = setTimeout(moveMarker, 50);
+        window.addEventListener('resize', moveMarker);
 
         return () => {
             clearTimeout(timer);
-            window.removeEventListener('resize', calculateAndMoveMarker);
+            window.removeEventListener('resize', moveMarker);
         };
-    }, [currentFilter]);
-
-
+    }, [currentFilter, categories, moveMarker]);
+    
     const handleFilterClick = (filter: string) => {
         if (filter === currentFilter) return;
         setCurrentFilter(filter);
     };
 
-    const handleCardClick = (item: AiDevelopment) => {
-        setSelectedItem(item);
+    const handleSaveApp = (appData: WebApp) => {
+        const appExists = apps.some(a => a.id === appData.id);
+        if (appExists) {
+            setApps(apps.map(a => a.id === appData.id ? appData : a));
+            toast({ title: "تم التحديث بنجاح!"});
+        } else {
+            setApps([...apps, appData]);
+            toast({ title: "تمت الإضافة بنجاح!"});
+        }
+        setEditingApp(null);
     };
 
-    const closeModal = () => {
-        setSelectedItem(null);
-    };
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") closeModal();
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
-    const modalVariants = {
-        hidden: { opacity: 0, scale: 0.97 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
-        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.2, ease: [0.55, 0.085, 0.68, 0.53] } },
+    const handleDeleteApp = () => {
+        if (appToDelete) {
+            setApps(apps.filter(a => a.id !== appToDelete.id));
+            toast({ title: "تم الحذف بنجاح!", variant: "destructive"});
+            setAppToDelete(null);
+        }
     };
     
-    const modalBackdropVariants = {
-      hidden: { opacity: 0 },
-      visible: { opacity: 1 },
-      exit: { opacity: 0 },
-    };
+    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-    const containerVariants = {
-        hidden: { opacity: 1 }, // Start with opacity 1 to avoid initial flash
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.07, // This creates the sequential animation for children
-            },
-        },
+    const handleAppDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (active.id !== over?.id) {
+        setApps((items) => {
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          const newIndex = items.findIndex((item) => item.id === over!.id);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
     };
-
-    const cardVariants = {
-        hidden: { opacity: 0, y: 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.6, ease: 'easeOut' },
-        },
-    };
-
 
     return (
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
                 <header className="text-center mb-8 mt-4">
                     <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                        آخر تطورات Google في الذكاء الاصطناعي
+                        ساحة عرض تطبيقات الويب
                     </h1>
                 </header>
                 
                 <div className="flex justify-center mb-10">
-                    <nav 
-                        ref={filterNavRef}
-                        className="relative flex items-center justify-center flex-wrap gap-2 p-2 rounded-full"
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
-                    >
-                        <div
-                            ref={markerRef}
-                            className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
-                            style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
-                        ></div>
-                        {filters.map(f => (
-                          <button 
-                            key={f.key}
-                            data-filter={f.key}
-                            onClick={() => handleFilterClick(f.key)}
-                            className={cn(
-                                'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
-                                currentFilter === f.key ? 'text-white' : 'text-gray-300 hover:text-white'
-                            )}
-                          >
-                            {f.icon && <span dangerouslySetInnerHTML={{ __html: f.icon }} />}
-                            <span>{f.text}</span>
-                          </button>
-                        ))}
-                    </nav>
+                    <div className="flex items-center gap-2">
+                        <nav 
+                            ref={filterNavRef}
+                            className="relative flex items-center justify-center flex-wrap gap-2 p-2 rounded-full"
+                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                        >
+                            <div
+                                ref={markerRef}
+                                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
+                                style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
+                            ></div>
+                            <button
+                                data-filter="all"
+                                onClick={() => handleFilterClick('all')}
+                                className={cn(
+                                    'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
+                                    currentFilter === 'all' ? 'text-white' : 'text-gray-300 hover:text-white'
+                                )}
+                            >
+                                الكل
+                            </button>
+                            {categories.map(c => (
+                              <button 
+                                key={c.id}
+                                data-filter={c.id}
+                                onClick={() => handleFilterClick(c.id)}
+                                className={cn(
+                                    'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
+                                    currentFilter === c.id ? 'text-white' : 'text-gray-300 hover:text-white'
+                                )}
+                              >
+                                {getIcon(c.icon, {})}
+                                <span>{c.name}</span>
+                              </button>
+                            ))}
+                        </nav>
+                        <ManageCategoriesDialog categories={categories} setCategories={setCategories}>
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="rounded-full bg-black/20 border border-white/10">
+                                            <LucideIcons.Settings className="w-5 h-5"/>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>إدارة الفئات</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                             </TooltipProvider>
+                        </ManageCategoriesDialog>
+                    </div>
                 </div>
 
-                <motion.main 
-                    key={currentFilter} // IMPORTANT: Re-triggers the animation when the filter changes
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                >
-                    {filteredDevelopments.map((item) => (
-                        <motion.div 
-                            key={item.title} 
-                            variants={cardVariants} // Variants are controlled by the parent's staggerChildren
-                            className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer"
-                            onClick={() => handleCardClick(item)}
-                        >
-                            <div>
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="text-gray-300" dangerouslySetInnerHTML={{ __html: item.icon }} />
-                                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/20 text-gray-200 border border-white/10">{getCategoryText(item.category)}</span>
-                                </div>
-                                <h3 className="font-headline font-bold text-lg text-white mb-2">{item.title}</h3>
-                                <p className="text-gray-300 text-sm leading-relaxed">{item.shortDesc}</p>
-                            </div>
-                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
-                                <span className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${item.source}</span>` }} />
-                                <span className="flex items-center gap-1 text-green-400" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${item.date}</span>` }} />
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.main>
-            </div>
-            
-            <AnimatePresence>
-                {selectedItem && (
-                    <motion.div 
-                        className="fixed inset-0 z-50 flex justify-center items-center p-4" 
-                        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }}
-                        onClick={closeModal}
-                        variants={modalBackdropVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                    >
-                        <motion.div 
-                            className="modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
-                            onClick={(e) => e.stopPropagation()}
-                            variants={modalVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                        >
-                            <button onClick={closeModal} className="absolute top-4 left-4 text-gray-300 hover:text-white transition">
-                               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-
-                            <div className="flex flex-col gap-4 pb-4 border-b border-white/10">
-                                <div className="flex items-center gap-4">
-                                    <span 
-                                        className="bg-gradient-to-br from-blue-500/30 to-purple-600/30 p-3 rounded-xl text-white" 
-                                        dangerouslySetInnerHTML={{ __html: selectedItem.icon.replace('width="20"','width="28"').replace('height="20"','height="28"')}} 
-                                    />
-                                    <div>
-                                        <h2 className="font-headline text-xl font-bold text-white">{selectedItem.title}</h2>
-                                        <div className="flex items-center gap-4 mt-2 text-xs">
-                                            <p className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${selectedItem.source}</span>` }} />
-                                            <p className="text-green-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${selectedItem.date}</span>` }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="py-6 space-y-4">
-                                {selectedItem.details.map((detail, index) => (
-                                    <div key={index} className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 mt-1 w-5 h-5 text-blue-400 bg-[#171424] p-0.5 rounded-full" dangerouslySetInnerHTML={{ __html: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>` }}/>
-                                        <FormattedText text={detail} />
-                                    </div>
+                <main className="pb-20">
+                    <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleAppDragEnd}>
+                        <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
+                                {filteredApps.map((app) => (
+                                    <SortableItem key={app.id} id={app.id}>
+                                       <AppIcon 
+                                            app={app} 
+                                            onEdit={() => { setEditingApp(app); }}
+                                            onDelete={() => setAppToDelete(app)}
+                                        />
+                                    </SortableItem>
                                 ))}
                             </div>
+                        </SortableContext>
+                    </DndContext>
+                </main>
+            </div>
+            
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+                <EditAppDialog categories={categories} onSave={handleSaveApp} app={editingApp || undefined}>
+                     <Button size="lg" className="rounded-full shadow-lg" onClick={() => setEditingApp(null)}>
+                        <LucideIcons.Plus className="w-5 h-5 ml-2" />
+                        إضافة تطبيق
+                     </Button>
+                </EditAppDialog>
+            </div>
+            
+            <Dialog open={!!editingApp} onOpenChange={(isOpen) => !isOpen && setEditingApp(null)}>
+                 <EditAppDialog categories={categories} onSave={handleSaveApp} app={editingApp || undefined}>
+                     <span></span>
+                 </EditAppDialog>
+            </Dialog>
 
-                            {selectedItem.link && selectedItem.link !== '#' && (
-                                <div className="mt-2 pt-6 border-t border-white/10 flex justify-center">
-                                    <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-full transition-transform transform hover:scale-105 inline-flex items-center gap-2">
-                                        <span>اقرأ المصدر</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                    </a>
-                                </div>
-                            )}
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+             <Dialog open={!!appToDelete} onOpenChange={(isOpen) => !isOpen && setAppToDelete(null)}>
+                <DialogContent className="modal-card">
+                    <DialogHeader>
+                        <DialogTitle>تأكيد الحذف</DialogTitle>
+                        <DialogDescription>
+                            هل أنت متأكد من أنك تريد حذف "{appToDelete?.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="destructive" onClick={handleDeleteApp}>حذف</Button>
+                        <Button variant="outline" onClick={() => setAppToDelete(null)}>إلغاء</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

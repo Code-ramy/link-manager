@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'AI Insights Stream',
-  description: 'The latest AI developments from Google, summarized for you.',
+  title: 'Web App Launcher',
+  description: 'Your personal web app launcher.',
 };
 
 export default function RootLayout({
