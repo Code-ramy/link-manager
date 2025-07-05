@@ -1,45 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Check, 
-    Link as LinkIcon, 
-    X,
-    Megaphone,
-    Wrench,
-    Package,
-    Users,
-    Bookmark,
-    CalendarDays,
-    type LucideProps
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { getCategoryText, icons } from '@/lib/data';
 import type { AiDevelopment } from '@/lib/types';
-import { getCategoryText } from '@/lib/data';
-
-// --- Icon Component ---
-const iconMap = {
-    Megaphone,
-    Wrench,
-    Package,
-    Users,
-};
-const CardIcon = ({ name, ...props }: { name: string } & LucideProps) => {
-    const LucideIcon = iconMap[name as keyof typeof iconMap];
-    if (!LucideIcon) return null;
-    return <LucideIcon {...props} />;
-};
+import { cn } from '@/lib/utils';
 
 // --- Formatted Text Component ---
 const FormattedText = ({ text }: { text: string }) => {
   const parts = text.split(/\*\*(.*?)\*\*/g);
   return (
-    <p className="text-muted-foreground leading-relaxed">
+    <p className="text-gray-300 leading-relaxed">
       {parts.map((part, index) =>
         index % 2 === 1 ? (
-          <strong key={index} className="text-foreground font-medium">
+          <strong key={index} className="text-white font-medium">
             {part}
           </strong>
         ) : (
@@ -50,174 +24,159 @@ const FormattedText = ({ text }: { text: string }) => {
   );
 };
 
-// --- Filter Button Component ---
-const FilterButton = ({
-  filter,
-  currentFilter,
-  onClick,
-  icon,
-  text,
-}: {
-  filter: string;
-  currentFilter: string;
-  onClick: (filter: string) => void;
-  icon?: string;
-  text: string;
-}) => (
-  <button
-    className={cn(
-      'relative font-headline py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-      currentFilter === filter 
-        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
-        : 'bg-secondary text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-    )}
-    onClick={() => onClick(filter)}
-  >
-    {icon && <CardIcon name={icon} className="h-4 w-4" />}
-    <span>{text}</span>
-  </button>
-);
-
-// --- Animation Variants ---
-const cardVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.05,
-      duration: 0.3,
-      ease: "easeOut",
-    },
-  }),
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.2,
-      ease: "easeIn"
-    },
-  },
-};
-
-const modalBackdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } },
-    exit: { opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
-};
-
-const modalContentVariants = {
-    hidden: { scale: 0.98, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
-    exit: { scale: 0.98, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
-};
-
+// --- Main Component ---
 export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
     const [currentFilter, setCurrentFilter] = useState('all');
     const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>([]);
     const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
 
+    const filterNavRef = useRef<HTMLDivElement>(null);
+    const markerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
-        setFilteredDevelopments(
-            currentFilter === 'all'
-                ? developments
-                : developments.filter(item => item.category === currentFilter)
-        );
+        const newFiltered = currentFilter === 'all'
+            ? developments
+            : developments.filter(item => item.category === currentFilter);
+        
+        setFilteredDevelopments(newFiltered);
     }, [currentFilter, developments]);
     
     const filters = React.useMemo(() => [
-      { key: 'all', text: 'الكل' },
-      { key: 'official', text: 'رسمي', icon: 'Megaphone' },
-      { key: 'tools', text: 'أدوات', icon: 'Wrench' },
-      { key: 'products', text: 'منتجات', icon: 'Package' },
-      { key: 'community', text: 'مجتمعي', icon: 'Users' },
+        { key: 'all', text: 'الكل' },
+        { key: 'official', text: 'رسمي', icon: icons.official },
+        { key: 'tools', text: 'أدوات', icon: icons.tools },
+        { key: 'products', text: 'منتجات', icon: icons.products },
+        { key: 'community', text: 'مجتمعي', icon: icons.community },
     ], []);
+
+    const moveMarker = (targetButton: HTMLElement) => {
+        if (!filterNavRef.current || !markerRef.current) return;
+        const navRect = filterNavRef.current.getBoundingClientRect();
+        const targetRect = targetButton.getBoundingClientRect();
+        const offsetX = targetRect.left - navRect.left;
+        
+        markerRef.current.style.width = `${targetRect.width}px`;
+        markerRef.current.style.height = `${targetRect.height}px`;
+        markerRef.current.style.transform = `translateX(${offsetX}px)`;
+    };
+    
+    useEffect(() => {
+        const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
+        if(activeBtn) {
+            moveMarker(activeBtn);
+        }
+
+        const handleResize = () => {
+            const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
+            if(activeBtn) moveMarker(activeBtn);
+        }
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [currentFilter]);
+
+
+    const handleFilterClick = (filter: string, e: React.MouseEvent<HTMLButtonElement>) => {
+        setCurrentFilter(filter);
+        moveMarker(e.currentTarget);
+    };
 
     const handleCardClick = (item: AiDevelopment) => {
         setSelectedItem(item);
-        document.body.style.overflow = 'hidden';
     };
 
     const closeModal = () => {
         setSelectedItem(null);
-        document.body.style.overflow = '';
     };
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") closeModal();
         };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: (i: number) => ({
+            opacity: 1,
+            y: 0,
+            transition: { delay: i * 0.05, duration: 0.3, ease: 'easeOut' },
+        }),
+        exit: { opacity: 0, transition: { duration: 0.15 } },
+    };
+
+    const modalVariants = {
+        hidden: { opacity: 0, scale: 0.97 },
+        visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: 'easeOut' } },
+        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.15, ease: 'easeIn' } },
+    };
 
     return (
         <>
-            <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
-                <header className="text-center mb-12 mt-8">
-                    <motion.h1 
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="font-headline text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-primary-foreground to-muted-foreground mb-4" 
-                        style={{ textShadow: '0 2px 20px hsl(var(--primary) / 0.1)' }}
-                    >
+            <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
+                <header className="text-center mb-10 mt-8">
+                    <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                         آخر تطورات Google في الذكاء الاصطناعي
-                    </motion.h1>
+                    </h1>
                 </header>
                 
-                <div className="flex justify-center mb-12">
-                    <nav className="flex items-center justify-center flex-wrap gap-2 p-1.5 rounded-full bg-secondary/30 backdrop-blur-sm border border-white/5">
+                <div className="flex justify-center mb-10">
+                    <nav 
+                        ref={filterNavRef}
+                        className="relative flex items-center justify-center flex-wrap gap-2 p-2 rounded-full"
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                    >
+                        <div
+                            ref={markerRef}
+                            className="absolute top-0 left-0 h-full rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
+                        ></div>
                         {filters.map(f => (
-                          <FilterButton 
+                          <button 
                             key={f.key}
-                            filter={f.key}
-                            currentFilter={currentFilter}
-                            onClick={setCurrentFilter}
-                            text={f.text}
-                            icon={f.icon}
-                          />
+                            data-filter={f.key}
+                            onClick={(e) => handleFilterClick(f.key, e)}
+                            className={cn(
+                                'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
+                                currentFilter === f.key ? 'text-white' : 'text-gray-300 hover:text-white'
+                            )}
+                          >
+                            {f.icon && <span dangerouslySetInnerHTML={{ __html: f.icon }} />}
+                            <span>{f.text}</span>
+                          </button>
                         ))}
                     </nav>
                 </div>
 
                 <motion.main 
-                    layout 
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
                 >
                     <AnimatePresence>
                         {filteredDevelopments.map((item, index) => (
                             <motion.div 
-                                layout
+                                layout="position"
                                 key={item.title} 
                                 variants={cardVariants}
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
                                 custom={index}
-                                className="bg-secondary/40 border border-secondary rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:border-primary/70 hover:bg-secondary"
+                                className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer"
                                 onClick={() => handleCardClick(item)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => e.key === 'Enter' && handleCardClick(item)}
                             >
                                 <div>
                                     <div className="flex justify-between items-start mb-4">
-                                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{getCategoryText(item.category)}</span>
-                                        <CardIcon name={item.icon} className="text-muted-foreground w-5 h-5" />
+                                        <span className="text-gray-300" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/20 text-gray-200 border border-white/10">{getCategoryText(item.category)}</span>
                                     </div>
-                                    <h3 className="font-headline font-bold text-lg text-foreground mb-3 line-clamp-2">{item.title}</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">{item.shortDesc}</p>
+                                    <h3 className="font-headline font-bold text-lg text-white mb-2">{item.title}</h3>
+                                    <p className="text-gray-300 text-sm leading-relaxed">{item.shortDesc}</p>
                                 </div>
                                 <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-1.5 text-yellow-400">
-                                      <Bookmark className="h-3.5 w-3.5" />
-                                      <span>{item.source}</span>
-                                    </span>
-                                    <span className="flex items-center gap-1.5 text-green-400">
-                                      <CalendarDays className="h-3.5 w-3.5" />
-                                      <span>{item.date}</span>
-                                    </span>
+                                    <span className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${item.source}</span>` }} />
+                                    <span className="flex items-center gap-1 text-green-400" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${item.date}</span>` }} />
                                 </div>
                             </motion.div>
                         ))}
@@ -227,58 +186,58 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
             
             <AnimatePresence>
                 {selectedItem && (
-                    <motion.div 
-                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/60 backdrop-blur-sm" 
+                    <div 
+                        className="fixed inset-0 z-50 flex justify-center items-center p-4" 
+                        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }}
                         onClick={closeModal}
-                        variants={modalBackdropVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
                     >
                         <motion.div 
-                            className="bg-card border border-border w-full max-w-2xl rounded-2xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
+                            className="modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
-                            variants={modalContentVariants}
+                            variants={modalVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
                         >
-                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition rounded-full h-8 w-8 z-10" onClick={closeModal}>
-                                <X className="h-5 w-5" />
-                            </Button>
-                            
-                            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-4 mb-4 border-b border-border">
-                                <div className="bg-primary/10 p-3 rounded-xl text-primary flex-shrink-0">
-                                    <CardIcon name={selectedItem.icon} className="w-8 h-8" />
-                                </div>
-                                <div className="flex-grow">
-                                    <h2 className="font-headline text-xl sm:text-2xl font-bold text-foreground">{selectedItem.title}</h2>
-                                    <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                                        <p className="font-semibold flex items-center gap-1.5 text-yellow-400"><Bookmark className="w-3.5 h-3.5" /><span>{selectedItem.source}</span></p>
-                                        <p className="flex items-center gap-1.5 text-green-400"><CalendarDays className="w-3.5 h-3.5" /><span>{selectedItem.date}</span></p>
+                            <button onClick={closeModal} className="absolute top-4 left-4 text-gray-300 hover:text-white transition">
+                               <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+
+                            <div className="flex flex-col gap-4 pb-4 border-b border-white/10">
+                                <div className="flex items-center gap-4">
+                                    <span 
+                                        className="bg-gradient-to-br from-blue-500/30 to-purple-600/30 p-3 rounded-xl text-white" 
+                                        dangerouslySetInnerHTML={{ __html: selectedItem.icon.replace('width="20"','width="28"').replace('height="20"','height="28"')}} 
+                                    />
+                                    <div>
+                                        <h2 className="font-headline text-xl font-bold text-white">{selectedItem.title}</h2>
+                                        <div className="flex items-center gap-4 mt-2 text-xs">
+                                            <p className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${selectedItem.source}</span>` }} />
+                                            <p className="text-green-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${selectedItem.date}</span>` }} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div className="space-y-4">
+                            <div className="py-6 space-y-4">
                                 {selectedItem.details.map((detail, index) => (
                                     <div key={index} className="flex items-start gap-4">
-                                        <Check className="flex-shrink-0 mt-1 w-5 h-5 text-primary bg-primary/10 p-0.5 rounded-full border-2 border-primary/30" />
+                                        <div className="flex-shrink-0 mt-1 w-5 h-5 text-blue-400 bg-[#171424] p-0.5 rounded-full" dangerouslySetInnerHTML={{ __html: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>` }}/>
                                         <FormattedText text={detail} />
                                     </div>
                                 ))}
                             </div>
 
                             {selectedItem.link && selectedItem.link !== '#' && (
-                                <div className="mt-6 pt-6 border-t border-border flex justify-center">
-                                    <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-6 rounded-full transition-transform transform hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-primary/20">
+                                <div className="mt-2 pt-6 border-t border-white/10 flex justify-center">
+                                    <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-full transition-transform transform hover:scale-105 inline-flex items-center gap-2">
                                         <span>اقرأ المصدر</span>
-                                        <LinkIcon className="h-4 w-4" />
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </a>
                                 </div>
                             )}
                         </motion.div>
-                    </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </>
