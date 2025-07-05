@@ -49,15 +49,14 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 100, // Faster animation
+      duration: 150,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
-  
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    // Apply transition only when not dragging for smoother cursor follow
-    transition: isDragging ? 'none' : transition,
+    transition,
   };
 
   return (
@@ -67,8 +66,8 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
-        // Add a subtle lift and shadow effect when dragging
-        isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
+        isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none',
+        'transition-transform duration-150'
       )}
     >
       {children}
@@ -151,7 +150,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex items-center justify-center flex-col gap-4">
-               <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden bg-white/10">
+               <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
@@ -341,25 +340,32 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 }
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
-  const wasDragged = useRef(false);
+  const [preventClick, setPreventClick] = useState(false);
 
   useEffect(() => {
     if (isDragging) {
-      wasDragged.current = true;
+      setPreventClick(true);
     }
   }, [isDragging]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (wasDragged.current) {
+    if (preventClick) {
       e.preventDefault();
       e.stopPropagation();
     }
-    // Reset the flag after any click attempt to allow for the next clean click.
-    wasDragged.current = false;
+  };
+
+  const handlePointerUp = () => {
+    // Use a timeout to ensure this runs after the click event has been processed.
+    setTimeout(() => {
+      if (preventClick) {
+        setPreventClick(false);
+      }
+    }, 50);
   };
 
   return (
-    <div className="relative group flex flex-col items-center gap-2 text-center w-20">
+    <div className="relative group flex flex-col items-center gap-2 text-center w-20" onPointerUp={handlePointerUp}>
       <a href={app.url} 
          onClick={handleClick}
          target="_blank" 
@@ -475,7 +481,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setApps((items) => {
@@ -484,6 +489,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         return arrayMove(items, oldIndex, newIndex);
       });
     }
+    setActiveId(null);
   };
 
   return (
