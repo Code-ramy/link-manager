@@ -224,7 +224,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
             </div>
             <DialogFooter className="pt-4 gap-2">
               <DialogClose asChild><Button variant="outline" className="bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
-              <Button type="submit" className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white">حفظ</Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -376,11 +376,16 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       >
         <div
           className={cn(
-            'w-full h-full transition-transform duration-200 ease-in-out flex items-center justify-center'
+            'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
+            isDragging
+              ? 'scale-110 shadow-2xl'
+              : 'scale-100 shadow-none'
           )}
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-            <img src={app.icon} alt={app.name} className="w-full h-full object-contain rounded-lg" />
+            <div className="w-full h-full rounded-lg overflow-hidden">
+              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
+            </div>
           ) : (
             getIcon(app.icon, { className: "w-9 h-9 text-white" })
           )}
@@ -438,10 +443,9 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   }, [currentFilter]);
 
   useEffect(() => {
-    const timer = setTimeout(moveMarker, 50);
+    moveMarker();
     window.addEventListener('resize', moveMarker);
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('resize', moveMarker);
     };
   }, [currentFilter, categories, moveMarker]);
@@ -516,7 +520,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
             ساحة عرض تطبيقات الويب
           </h1>
-          <Button size="lg" className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white" onClick={handleOpenAddDialog}>
+          <Button size="lg" className="rounded-md bg-primary hover:bg-primary/90 text-white" onClick={handleOpenAddDialog}>
             <LucideIcons.Plus className="w-5 h-5 ml-2" />
             إضافة تطبيق
           </Button>
@@ -531,7 +535,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             >
               <div
                 ref={markerRef}
-                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
+                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-primary transition-all duration-500"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
               ></div>
               <button
