@@ -78,7 +78,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     }, [currentFilter]);
 
 
-    const handleFilterClick = (filter: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleFilterClick = (filter: string) => {
         setCurrentFilter(filter);
     };
 
@@ -99,18 +99,29 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     }, []);
 
     const cardVariants = {
-        hidden: { opacity: 0 },
+        hidden: { opacity: 0, y: 20 },
         visible: (i: number) => ({
             opacity: 1,
-            transition: { delay: i * 0.07, duration: 0.5, ease: 'easeInOut' },
+            y: 0,
+            transition: { delay: i * 0.07, duration: 0.4, ease: 'easeOut' },
         }),
-        exit: { opacity: 0, transition: { duration: 0.2, ease: 'easeInOut' } },
+        exit: { 
+            opacity: 0,
+            y: 20,
+            transition: { duration: 0.2, ease: 'easeIn' }
+        },
     };
 
     const modalVariants = {
         hidden: { opacity: 0, scale: 0.97 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: 'easeOut' } },
-        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.15, ease: 'easeIn' } },
+        visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' } },
+        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.2, ease: 'cubic-bezier(0.55, 0.085, 0.68, 0.53)' } },
+    };
+    
+    const modalBackdropVariants = {
+      hidden: { opacity: 0 },
+      visible: { opacity: 1 },
+      exit: { opacity: 0 },
     };
 
     return (
@@ -137,7 +148,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                           <button 
                             key={f.key}
                             data-filter={f.key}
-                            onClick={(e) => handleFilterClick(f.key, e)}
+                            onClick={() => handleFilterClick(f.key)}
                             className={cn(
                                 'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
                                 currentFilter === f.key ? 'text-white' : 'text-gray-300 hover:text-white'
@@ -157,7 +168,6 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     <AnimatePresence>
                         {filteredDevelopments.map((item, index) => (
                             <motion.div 
-                                layout="position"
                                 key={item.title} 
                                 variants={cardVariants}
                                 initial="hidden"
@@ -187,10 +197,14 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
             
             <AnimatePresence>
                 {selectedItem && (
-                    <div 
+                    <motion.div 
                         className="fixed inset-0 z-50 flex justify-center items-center p-4" 
                         style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }}
                         onClick={closeModal}
+                        variants={modalBackdropVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                     >
                         <motion.div 
                             className="modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
@@ -238,7 +252,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                                 </div>
                             )}
                         </motion.div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </>
