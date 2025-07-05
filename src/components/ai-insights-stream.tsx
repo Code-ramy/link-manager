@@ -77,24 +77,16 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   };
 
   return (
-    <motion.div
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      variants={itemVariants}
     >
-      <div
-        className={cn(
-          'transition-transform duration-200 ease-in-out',
-          isDragging
-            ? 'scale-110 shadow-2xl'
-            : 'scale-100 shadow-none'
-        )}
-      >
+      <motion.div variants={itemVariants}>
         {children}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
