@@ -29,17 +29,20 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     const [currentFilter, setCurrentFilter] = useState('all');
     const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>([]);
     const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
+    const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
     const filterNavRef = useRef<HTMLDivElement>(null);
     const markerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const newFiltered = currentFilter === 'all'
-            ? developments
-            : developments.filter(item => item.category === currentFilter);
-        
-        setFilteredDevelopments(newFiltered);
-    }, [currentFilter, developments]);
+        // Only update the list of developments when not in the middle of a fade-out animation
+        if (!isAnimatingOut) {
+            const newFiltered = currentFilter === 'all'
+                ? developments
+                : developments.filter(item => item.category === currentFilter);
+            setFilteredDevelopments(newFiltered);
+        }
+    }, [currentFilter, developments, isAnimatingOut]);
     
     const filters = React.useMemo(() => [
         { key: 'all', text: 'الكل' },
@@ -79,7 +82,14 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
 
 
     const handleFilterClick = (filter: string) => {
-        setCurrentFilter(filter);
+        if (filter === currentFilter) return;
+
+        setIsAnimatingOut(true);
+        // Wait for the fade-out animation to complete, then update the filter and fade back in.
+        setTimeout(() => {
+            setCurrentFilter(filter);
+            setIsAnimatingOut(false);
+        }, 300);
     };
 
     const handleCardClick = (item: AiDevelopment) => {
@@ -97,20 +107,6 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
-
-    const cardVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: { delay: i * 0.07, duration: 0.4, ease: 'easeOut' },
-        }),
-        exit: { 
-            opacity: 0,
-            y: 20,
-            transition: { duration: 0.2, ease: 'easeIn' }
-        },
-    };
 
     const modalVariants = {
         hidden: { opacity: 0, scale: 0.97 },
@@ -162,36 +158,33 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                 </div>
 
                 <motion.main 
-                    layout
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                    animate={{ opacity: isAnimatingOut ? 0 : 1, y: isAnimatingOut ? 10 : 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
-                    <AnimatePresence>
-                        {filteredDevelopments.map((item, index) => (
-                            <motion.div 
-                                key={item.title} 
-                                variants={cardVariants}
-                                initial="hidden"
-                                animate="visible"
-                                exit="exit"
-                                custom={index}
-                                className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer"
-                                onClick={() => handleCardClick(item)}
-                            >
-                                <div>
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="text-gray-300" dangerouslySetInnerHTML={{ __html: item.icon }} />
-                                        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/20 text-gray-200 border border-white/10">{getCategoryText(item.category)}</span>
-                                    </div>
-                                    <h3 className="font-headline font-bold text-lg text-white mb-2">{item.title}</h3>
-                                    <p className="text-gray-300 text-sm leading-relaxed">{item.shortDesc}</p>
+                    {filteredDevelopments.map((item, index) => (
+                        <motion.div 
+                            key={item.title} 
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.07, duration: 0.6, ease: 'easeOut' }}
+                            className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer"
+                            onClick={() => handleCardClick(item)}
+                        >
+                            <div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="text-gray-300" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/20 text-gray-200 border border-white/10">{getCategoryText(item.category)}</span>
                                 </div>
-                                <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
-                                    <span className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${item.source}</span>` }} />
-                                    <span className="flex items-center gap-1 text-green-400" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${item.date}</span>` }} />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                                <h3 className="font-headline font-bold text-lg text-white mb-2">{item.title}</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed">{item.shortDesc}</p>
+                            </div>
+                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                <span className="font-semibold text-yellow-400 flex items-center gap-2" dangerouslySetInnerHTML={{ __html: `${icons.source}<span>${item.source}</span>` }} />
+                                <span className="flex items-center gap-1 text-green-400" dangerouslySetInnerHTML={{ __html: `${icons.date}<span>${item.date}</span>` }} />
+                            </div>
+                        </motion.div>
+                    ))}
                 </motion.main>
             </div>
             
