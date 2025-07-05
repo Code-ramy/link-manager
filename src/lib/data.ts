@@ -14,7 +14,7 @@ export const aiDevelopmentsData: AiDevelopment[] = [
 export const getCategoryText = (category: AiDevelopment['category']) => {
     switch (category) {
         case 'official': return 'رسمي';
-        case 'tools': return 'أدوات ونماذج';
+        case 'tools': return 'أدوات';
         case 'products': return 'منتجات';
         case 'community': return 'مجتمعي';
         default: return 'عام';

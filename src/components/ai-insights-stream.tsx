@@ -25,8 +25,6 @@ const iconMap = {
     Wrench,
     Package,
     Users,
-    Bookmark,
-    CalendarDays,
 };
 const CardIcon = ({ name, ...props }: { name: string } & LucideProps) => {
     const LucideIcon = iconMap[name as keyof typeof iconMap];
@@ -83,19 +81,18 @@ const FilterButton = ({
 
 // --- Animation Variants ---
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     transition: {
       delay: i * 0.05,
-      duration: 0.4,
+      duration: 0.3,
       ease: "easeOut",
     },
   }),
   exit: {
     opacity: 0,
-    y: -20,
     transition: {
       duration: 0.2,
       ease: "easeIn"
@@ -110,11 +107,10 @@ const modalBackdropVariants = {
 };
 
 const modalContentVariants = {
-    hidden: { scale: 0.95, opacity: 0 },
+    hidden: { scale: 0.98, opacity: 0 },
     visible: { scale: 1, opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
-    exit: { scale: 0.95, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
+    exit: { scale: 0.98, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
 };
-// ---
 
 export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
     const [currentFilter, setCurrentFilter] = useState('all');
