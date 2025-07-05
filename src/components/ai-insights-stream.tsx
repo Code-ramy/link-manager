@@ -57,7 +57,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   const style = {
     transform: CSS.Transform.toString(transform),
     // Apply transition only when not dragging for smooth reordering, but instant movement while dragging
-    transition: isDragging ? undefined : transition,
+    transition: isDragging ? 'none' : transition,
   };
 
   return (
@@ -67,6 +67,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
+        'transform-gpu', // Ensures GPU acceleration for smoother transforms
         isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
       )}
     >
@@ -152,7 +153,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
             <div className="flex items-center justify-center flex-col gap-4">
                <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden">
                 {iconPreview ? (
-                    <img src={iconPreview} alt="Preview" className="max-w-full max-h-full" />
+                    <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
                     <LucideIcons.ImageIcon className="w-10 h-10 text-muted-foreground" />
                 )}
@@ -354,11 +355,11 @@ const AppIcon = ({ app, onEdit, onDelete, wasDragged }: { app: WebApp, onEdit: (
          target="_blank" 
          rel="noopener noreferrer" 
          className="block w-16 h-16"
-         draggable="false"
+         draggable="false" // Prevent native browser drag which conflicts
       >
          <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-              <img src={app.icon} alt={app.name} className="max-w-full max-h-full" />
+              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             ) : (
               getIcon(app.icon, { className: "w-9 h-9 text-white" })
             )}
@@ -475,6 +476,9 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       });
     }
     setActiveId(null);
+    // Use a timeout to reset the flag after the current event loop.
+    // This allows the click event to be suppressed before the flag is reset,
+    // solving the "link opens on drag end" issue reliably.
     setTimeout(() => {
         wasDragged.current = false;
     }, 0);
