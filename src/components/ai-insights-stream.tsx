@@ -44,22 +44,28 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     listeners,
     setNodeRef,
     transform,
-    transition,
-    isDragging
+    transition: sortableTransition,
+    isDragging,
   } = useSortable({
     id,
     transition: {
-      duration: 150,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+      duration: 300, // A balanced duration for smoothness
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)', // A standard ease-in-out
     },
   });
 
+  // This transition handles the "drop" animation (scale, shadow)
+  const dropAnimationTransition = 'transform 200ms ease, box-shadow 200ms ease';
+  
+  // When dragging, no transition for instant feedback.
+  // When an item is moving aside, use dnd-kit's transition.
+  // When an item is dropped, use our custom drop animation.
+  const finalTransition = isDragging ? 'none' : (sortableTransition || dropAnimationTransition);
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
-    zIndex: isDragging ? 10 : 0,
-    '--tw-scale-x': isDragging ? '1.05' : '1',
-    '--tw-scale-y': isDragging ? '1.05' : '1',
+    transition: finalTransition,
+    zIndex: isDragging ? 10 : 'auto',
   };
 
   return (
@@ -69,14 +75,15 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
-        'transform-gpu',
-        isDragging ? 'shadow-2xl' : ''
+        // The scale/rotate is a transform, so it will be animated by `finalTransition`.
+        isDragging && 'scale-105 -rotate-1 shadow-2xl'
       )}
     >
       {children}
     </div>
   );
 };
+
 
 const getFaviconUrl = (url: string) => {
   try {
@@ -342,8 +349,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
-  
+const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, onDelete: () => void }) => {
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
       <a 
@@ -352,7 +358,6 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
          rel="noopener noreferrer" 
          className="block w-16 h-16"
          draggable="false"
-         style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
       >
          <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
@@ -552,7 +557,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           </div>
         </div>
 
-        <main className="pb-20">
+        <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
           <DndContext 
             sensors={sensors} 
             collisionDetector={closestCenter} 
@@ -568,7 +573,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                       app={app}
                       onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
-                      isDragging={isDragging}
                     />
                   </SortableItem>
                 ))}
