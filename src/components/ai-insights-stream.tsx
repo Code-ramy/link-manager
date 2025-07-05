@@ -13,6 +13,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { useDebounce } from 'use-debounce';
 import { z } from "zod";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -61,7 +62,17 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      layout="position"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+    >
       <div
         className={cn(
           'transition-transform duration-200 ease-in-out',
@@ -72,7 +83,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
       >
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -592,16 +603,18 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           >
             <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
-                {filteredApps.map((app) => (
-                  <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
-                    <AppIcon
-                      app={app}
-                      onEdit={() => handleOpenEditDialog(app)}
-                      onDelete={() => setAppToDelete(app)}
-                      isDragging={activeId === app.id}
-                    />
-                  </SortableItem>
-                ))}
+                <AnimatePresence>
+                  {filteredApps.map((app) => (
+                    <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
+                      <AppIcon
+                        app={app}
+                        onEdit={() => handleOpenEditDialog(app)}
+                        onDelete={() => setAppToDelete(app)}
+                        isDragging={activeId === app.id}
+                      />
+                    </SortableItem>
+                  ))}
+                </AnimatePresence>
               </div>
             </SortableContext>
           </DndContext>
