@@ -49,14 +49,13 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 100, // Faster animation
+      duration: 150,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    // Apply transition only when not dragging for smooth reordering, but instant movement while dragging
     transition: isDragging ? 'none' : transition,
   };
 
@@ -67,7 +66,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...attributes}
       {...listeners}
       className={cn(
-        'transform-gpu', // Ensures GPU acceleration for smoother transforms
+        'transform-gpu',
         isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
       )}
     >
@@ -355,7 +354,7 @@ const AppIcon = ({ app, onEdit, onDelete, wasDragged }: { app: WebApp, onEdit: (
          target="_blank" 
          rel="noopener noreferrer" 
          className="block w-16 h-16"
-         draggable="false" // Prevent native browser drag which conflicts
+         draggable="false"
       >
          <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
@@ -459,11 +458,15 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     }
   };
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 5,
+    },
+  }));
 
   const handleAppDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
     wasDragged.current = true;
+    setActiveId(event.active.id as string);
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
@@ -476,17 +479,16 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       });
     }
     setActiveId(null);
-    // Use a timeout to reset the flag after the current event loop.
-    // This allows the click event to be suppressed before the flag is reset,
-    // solving the "link opens on drag end" issue reliably.
     setTimeout(() => {
-        wasDragged.current = false;
+      wasDragged.current = false;
     }, 0);
   };
   
   const handleAppDragCancel = () => {
     setActiveId(null);
-    wasDragged.current = false;
+    setTimeout(() => {
+      wasDragged.current = false;
+    }, 0);
   }
 
   return (
