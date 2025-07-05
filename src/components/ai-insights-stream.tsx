@@ -20,6 +20,7 @@ import type { AiDevelopment } from '@/lib/types';
 import { getCategoryText } from '@/lib/data';
 
 // --- Icon Component ---
+// This is a small helper to dynamically render icons based on a string name.
 const iconMap = {
     Megaphone,
     Wrench,
@@ -28,15 +29,15 @@ const iconMap = {
     Bookmark,
     CalendarDays,
 };
-
 const CardIcon = ({ name, ...props }: { name: string } & LucideProps) => {
     const LucideIcon = iconMap[name as keyof typeof iconMap];
-    if (!LucideIcon) return null; // Or a fallback icon
+    if (!LucideIcon) return null;
     return <LucideIcon {...props} />;
 };
 // ---
 
 // --- Formatted Text Component ---
+// This component handles simple markdown-like bolding (**text**).
 const FormattedText = ({ text }: { text: string }) => {
   const parts = text.split(/\*\*(.*?)\*\*/g);
   return (
@@ -53,8 +54,10 @@ const FormattedText = ({ text }: { text: string }) => {
     </p>
   );
 };
+// ---
 
 // --- Filter Button Component ---
+// A reusable button for the filter navigation.
 const FilterButton = ({
   filter,
   currentFilter,
@@ -69,10 +72,12 @@ const FilterButton = ({
   text: string;
 }) => (
   <button
-    data-filter={filter}
     className={cn(
-      'filter-btn font-headline py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
-      currentFilter === filter ? 'active-btn' : ''
+      'relative font-headline py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      currentFilter === filter 
+        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+        : 'bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground'
     )}
     onClick={() => onClick(filter)}
   >
@@ -80,11 +85,11 @@ const FilterButton = ({
     <span>{text}</span>
   </button>
 );
-
+// ---
 
 // --- Animation Variants ---
 const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
@@ -92,90 +97,93 @@ const cardVariants = {
     transition: {
       delay: i * 0.05,
       type: "spring",
-      stiffness: 300,
+      stiffness: 400,
       damping: 25,
     },
   }),
   exit: {
     opacity: 0,
-    y: -30,
-    scale: 0.98,
+    y: -20,
+    scale: 0.95,
     transition: {
       duration: 0.2,
-      ease: "easeIn",
     },
   },
 };
 
 const modalBackdropVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.3, delay: 0.1 } },
+    visible: { opacity: 1, transition: { duration: 0.2, ease: 'easeOut' } },
+    exit: { opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
 };
 
 const modalContentVariants = {
-    hidden: { scale: 0.9, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 30, delay: 0.1 } },
-    exit: { scale: 0.9, opacity: 0, transition: { duration: 0.2 } },
+    hidden: { scale: 0.95, opacity: 0 },
+    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 400, damping: 30, delay: 0.05 } },
+    exit: { scale: 0.95, opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } },
 };
-
+// ---
 
 export function AiInsightsStream({ developments }: { developments: AiDevelopment[] }) {
     const [currentFilter, setCurrentFilter] = useState('all');
-    const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>(developments);
+    const [filteredDevelopments, setFilteredDevelopments] = useState<AiDevelopment[]>([]);
     const [selectedItem, setSelectedItem] = useState<AiDevelopment | null>(null);
 
+    // This effect filters the developments whenever the source data or filter changes.
+    // It also sets the initial full list.
     useEffect(() => {
-        if (currentFilter === 'all') {
-            setFilteredDevelopments(developments);
-        } else {
-            setFilteredDevelopments(developments.filter(item => item.category === currentFilter));
-        }
+        setFilteredDevelopments(
+            currentFilter === 'all'
+                ? developments
+                : developments.filter(item => item.category === currentFilter)
+        );
     }, [currentFilter, developments]);
-
-    const handleCardClick = (item: AiDevelopment) => {
-        setSelectedItem(item);
-    };
-
-    const closeModal = () => {
-        setSelectedItem(null);
-    };
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && selectedItem) {
-                closeModal();
-            }
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [selectedItem]);
-
-    const filters = [
+    
+    // Memoizing the list of filters to prevent re-creation on every render.
+    const filters = React.useMemo(() => [
       { key: 'all', text: 'الكل' },
       { key: 'official', text: 'رسمي', icon: 'Megaphone' },
       { key: 'tools', text: 'أدوات', icon: 'Wrench' },
       { key: 'products', text: 'منتجات', icon: 'Package' },
       { key: 'community', text: 'مجتمعي', icon: 'Users' },
-    ];
+    ], []);
+
+    const handleCardClick = (item: AiDevelopment) => {
+        setSelectedItem(item);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    const closeModal = () => {
+        setSelectedItem(null);
+        document.body.style.overflow = ''; // Restore scrolling
+    };
+
+    // Close modal with Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") closeModal();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return (
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
-                <header className="text-center mb-16 mt-8">
+                <header className="text-center mb-12 mt-8">
                     <motion.h1 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="font-headline text-4xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-4" 
-                        style={{ textShadow: '0 5px 25px rgba(0,0,0,0.3)' }}
+                        className="font-headline text-4xl sm:text-5xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-4" 
+                        style={{ textShadow: '0 4px 20px rgba(0,0,0,0.25)' }}
                     >
                         آخر تطورات Google في الذكاء الاصطناعي
                     </motion.h1>
                 </header>
                 
-                <div className="flex flex-col items-center gap-6 mb-12">
-                    <nav id="filter-nav" className="flex items-center justify-center flex-wrap gap-2 p-1.5 rounded-full relative">
+                <div className="flex justify-center mb-12">
+                    <nav className="flex items-center justify-center flex-wrap gap-2 p-1.5 rounded-full bg-secondary/30 backdrop-blur-sm border border-white/10">
                         {filters.map(f => (
                           <FilterButton 
                             key={f.key}
@@ -191,20 +199,19 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
 
                 <motion.main 
                     layout 
-                    id="cards-container" 
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 >
                     <AnimatePresence>
                         {filteredDevelopments.map((item, index) => (
                             <motion.div 
-                                layout="position"
+                                layout
                                 key={item.title} 
                                 variants={cardVariants}
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
                                 custom={index}
-                                className="glass-card p-6 flex flex-col justify-between cursor-pointer"
+                                className="bg-background/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:!scale-105 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10"
                                 onClick={() => handleCardClick(item)}
                                 role="button"
                                 tabIndex={0}
@@ -215,11 +222,11 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                                         <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{getCategoryText(item.category)}</span>
                                         <CardIcon name={item.icon} className="text-muted-foreground w-5 h-5" />
                                     </div>
-                                    <h3 className="font-headline font-bold text-xl text-foreground mb-3 h-16">{item.title}</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed h-20">{item.shortDesc}</p>
+                                    <h3 className="font-headline font-bold text-lg text-foreground mb-3 h-16">{item.title}</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed h-20 overflow-hidden text-ellipsis">{item.shortDesc}</p>
                                 </div>
-                                <div className="text-xs mt-6 pt-4 border-t border-border flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-2 text-yellow-400">
+                                <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1.5 text-yellow-400">
                                       <Bookmark className="h-3.5 w-3.5" />
                                       <span>{item.source}</span>
                                     </span>
@@ -237,8 +244,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
             <AnimatePresence>
                 {selectedItem && (
                     <motion.div 
-                        id="modal-backdrop" 
-                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/60" 
+                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/70 backdrop-blur-sm" 
                         onClick={closeModal}
                         variants={modalBackdropVariants}
                         initial="hidden"
@@ -246,54 +252,47 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                         exit="exit"
                     >
                         <motion.div 
-                            id="modal-content" 
-                            className="modal-card w-full max-w-2xl rounded-2xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
+                            className="bg-secondary/50 backdrop-blur-2xl border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                             variants={modalContentVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
                         >
-                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition rounded-full h-8 w-8" onClick={closeModal}>
+                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition rounded-full h-8 w-8 z-10" onClick={closeModal}>
                                 <X className="h-5 w-5" />
                             </Button>
-                            <div id="modal-body">
-                                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-4 border-b border-border">
-                                    <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-4 rounded-xl text-primary flex-shrink-0">
-                                        <CardIcon name={selectedItem.icon} className="w-8 h-8" />
-                                    </div>
-                                    <div className="flex-grow">
-                                        <h2 className="font-headline text-xl sm:text-2xl font-bold text-foreground">{selectedItem.title}</h2>
-                                        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                                            <p className="font-semibold flex items-center gap-2"><Bookmark className="w-3.5 h-3.5 text-yellow-500" /><span>{selectedItem.source}</span></p>
-                                            <p className="flex items-center gap-2"><CalendarDays className="w-3.5 h-3.5 text-green-500" /><span>{selectedItem.date}</span></p>
-                                        </div>
+                            
+                            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-4 mb-4 border-b border-white/10">
+                                <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-3 rounded-xl text-primary flex-shrink-0">
+                                    <CardIcon name={selectedItem.icon} className="w-8 h-8" />
+                                </div>
+                                <div className="flex-grow">
+                                    <h2 className="font-headline text-xl sm:text-2xl font-bold text-foreground">{selectedItem.title}</h2>
+                                    <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                                        <p className="font-semibold flex items-center gap-1.5 text-yellow-400"><Bookmark className="w-3.5 h-3.5" /><span>{selectedItem.source}</span></p>
+                                        <p className="flex items-center gap-1.5 text-green-400"><CalendarDays className="w-3.5 h-3.5" /><span>{selectedItem.date}</span></p>
                                     </div>
                                 </div>
-                                
-                                <div className="py-6 space-y-4">
-                                    {selectedItem.details.map((detail, index) => (
-                                        <div key={index} className="flex items-start gap-4">
-                                            <div className="relative flex-shrink-0 mt-1.5">
-                                                <div className="absolute top-full left-1/2 -translate-x-1/2 h-full w-0.5 bg-primary/20"></div>
-                                                <Check className="relative z-10 w-5 h-5 text-primary bg-background p-0.5 rounded-full border-2 border-primary/50" />
-                                            </div>
-                                            <div className="w-full">
-                                                <FormattedText text={detail} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {selectedItem.link && selectedItem.link !== '#' && (
-                                    <div className="mt-2 pt-6 border-t border-border flex justify-center">
-                                        <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-primary/20">
-                                            <span>اقرأ المصدر</span>
-                                            <LinkIcon className="h-4 w-4" />
-                                        </a>
-                                    </div>
-                                )}
                             </div>
+                            
+                            <div className="space-y-4">
+                                {selectedItem.details.map((detail, index) => (
+                                    <div key={index} className="flex items-start gap-4">
+                                        <Check className="flex-shrink-0 mt-1 w-5 h-5 text-primary bg-background p-0.5 rounded-full border-2 border-primary/50" />
+                                        <FormattedText text={detail} />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {selectedItem.link && selectedItem.link !== '#' && (
+                                <div className="mt-6 pt-6 border-t border-white/10 flex justify-center">
+                                    <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-6 rounded-full transition-transform transform hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-primary/20">
+                                        <span>اقرأ المصدر</span>
+                                        <LinkIcon className="h-4 w-4" />
+                                    </a>
+                                </div>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}
