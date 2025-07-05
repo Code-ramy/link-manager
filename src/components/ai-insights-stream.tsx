@@ -61,23 +61,25 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     };
     
     useEffect(() => {
-        const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
-        if(activeBtn) {
-            moveMarker(activeBtn);
-        }
-
-        const handleResize = () => {
+        const calculateAndMoveMarker = () => {
             const activeBtn = filterNavRef.current?.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
-            if(activeBtn) moveMarker(activeBtn);
-        }
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+            if (activeBtn) {
+                moveMarker(activeBtn);
+            }
+        };
+
+        const timer = setTimeout(calculateAndMoveMarker, 50);
+        window.addEventListener('resize', calculateAndMoveMarker);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', calculateAndMoveMarker);
+        };
     }, [currentFilter]);
 
 
     const handleFilterClick = (filter: string, e: React.MouseEvent<HTMLButtonElement>) => {
         setCurrentFilter(filter);
-        moveMarker(e.currentTarget);
     };
 
     const handleCardClick = (item: AiDevelopment) => {
@@ -97,13 +99,12 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     }, []);
 
     const cardVariants = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 0 },
         visible: (i: number) => ({
             opacity: 1,
-            y: 0,
-            transition: { delay: i * 0.05, duration: 0.3, ease: 'easeOut' },
+            transition: { delay: i * 0.07, duration: 0.5, ease: 'easeInOut' },
         }),
-        exit: { opacity: 0, transition: { duration: 0.15 } },
+        exit: { opacity: 0, transition: { duration: 0.2, ease: 'easeInOut' } },
     };
 
     const modalVariants = {
@@ -115,7 +116,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     return (
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
-                <header className="text-center mb-10 mt-8">
+                <header className="text-center mb-8 mt-4">
                     <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                         آخر تطورات Google في الذكاء الاصطناعي
                     </h1>
@@ -129,7 +130,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     >
                         <div
                             ref={markerRef}
-                            className="absolute top-0 left-0 h-full rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
+                            className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-[#4285F4] shadow-[0_0_8px_rgba(66,133,244,0.4)] transition-all duration-500"
                             style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
                         ></div>
                         {filters.map(f => (
