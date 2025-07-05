@@ -1,38 +1,32 @@
 import { useState, useEffect } from 'react';
 
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
-  const isClient = typeof window !== 'undefined';
+export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
 
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (!isClient) {
-      return initialValue;
-    }
+  // Effect to read from localStorage only on the client side after initial render
+  useEffect(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
     } catch (error) {
-      console.error(error);
-      return initialValue;
+      console.error('Error reading from localStorage', error);
     }
-  });
+  }, [key]);
 
-  const setValue = (value: T) => {
-    if (!isClient) {
-      return;
-    }
+  const setValue = (value: T | ((val: T) => T)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      console.error(error);
+      console.error('Error writing to localStorage', error);
     }
   };
 
+  // Effect to listen for changes in other tabs
   useEffect(() => {
-    if (!isClient) {
-      return;
-    }
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === key) {
         try {
@@ -46,7 +40,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [key, initialValue, isClient]);
+  }, [key, initialValue]);
 
   return [storedValue, setValue];
 }
