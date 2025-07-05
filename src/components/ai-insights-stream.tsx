@@ -57,6 +57,9 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
+    zIndex: isDragging ? 10 : 0,
+    '--tw-scale-x': isDragging ? '1.05' : '1',
+    '--tw-scale-y': isDragging ? '1.05' : '1',
   };
 
   return (
@@ -67,7 +70,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
       {...listeners}
       className={cn(
         'transform-gpu',
-        isDragging ? 'z-10 scale-105 shadow-2xl' : 'shadow-none'
+        isDragging ? 'shadow-2xl' : ''
       )}
     >
       {children}
@@ -339,22 +342,17 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete, wasDragged }: { app: WebApp, onEdit: () => void, onDelete: () => void, wasDragged: React.MutableRefObject<boolean> }) => {
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (wasDragged.current) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
+const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+  
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <a href={app.url} 
-         onClick={handleClick}
+      <a 
+         href={app.url} 
          target="_blank" 
          rel="noopener noreferrer" 
          className="block w-16 h-16"
          draggable="false"
+         style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
       >
          <div className="w-full h-full transition-all duration-300 group-hover:scale-110 flex items-center justify-center">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
@@ -388,6 +386,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const [currentFilter, setCurrentFilter] = useState('all');
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
   const [isEditAppOpen, setIsEditAppOpen] = useState(false);
@@ -395,7 +394,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
-  const wasDragged = useRef(false);
 
   const filteredApps = apps.filter(app => {
     if (currentFilter === 'all') return true;
@@ -460,12 +458,12 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
-      distance: 5,
+      distance: 8,
     },
   }));
 
   const handleAppDragStart = (event: DragStartEvent) => {
-    wasDragged.current = true;
+    setIsDragging(true);
     setActiveId(event.active.id as string);
   };
 
@@ -479,16 +477,12 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       });
     }
     setActiveId(null);
-    setTimeout(() => {
-      wasDragged.current = false;
-    }, 0);
+    setIsDragging(false);
   };
   
   const handleAppDragCancel = () => {
     setActiveId(null);
-    setTimeout(() => {
-      wasDragged.current = false;
-    }, 0);
+    setIsDragging(false);
   }
 
   return (
@@ -574,7 +568,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                       app={app}
                       onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
-                      wasDragged={wasDragged}
+                      isDragging={isDragging}
                     />
                   </SortableItem>
                 ))}
