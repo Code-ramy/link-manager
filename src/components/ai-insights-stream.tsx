@@ -17,6 +17,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -140,66 +141,90 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] modal-card">
+      <DialogContent className="sm:max-w-[425px] modal-card border-white/20">
         <DialogHeader>
-          <DialogTitle>{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
+          <DialogTitle className="font-headline text-2xl text-white">{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
           <DialogDescription>
             املأ التفاصيل أدناه. سيتم جلب الأيقونة تلقائيًا عند إدخال رابط صالح.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex items-center justify-center flex-col gap-4">
-               <div className="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 pt-2">
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
-                    <LucideIcons.ImageIcon className="w-10 h-10 text-muted-foreground" />
+                    <LucideIcons.ImageIcon className="w-12 h-12 text-muted-foreground" />
                 )}
               </div>
-              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                <LucideIcons.Upload className="mr-2 h-4 w-4" />
-                رفع أيقونة
-              </Button>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                ref={fileInputRef}
-              />
+              <div className="flex flex-col gap-2 justify-center">
+                <p className="text-sm font-medium text-gray-300">أيقونة التطبيق</p>
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20">
+                  <LucideIcons.Upload className="ml-2 h-4 w-4" />
+                  رفع صورة
+                </Button>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  ref={fileInputRef}
+                />
+              </div>
             </div>
-
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem><FormLabel>اسم التطبيق</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem><FormLabel>الرابط</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>الفئة</FormLabel>
-                   <select {...field} defaultValue={field.value} className="w-full p-2 rounded-md bg-input border border-border">
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit">حفظ</Button>
-              <DialogClose asChild><Button variant="outline">إلغاء</Button></DialogClose>
+            
+            <div className="grid gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>اسم التطبيق</FormLabel>
+                        <FormControl>
+                            <Input placeholder="مثال: Google" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>الرابط</FormLabel>
+                        <FormControl>
+                            <Input placeholder="https://google.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الفئة</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر فئة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
+            <DialogFooter className="pt-4">
+              <DialogClose asChild><Button variant="outline" className="bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
+              <Button type="submit" className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
         </Form>
