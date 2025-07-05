@@ -222,7 +222,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   )}
                 />
             </div>
-            <DialogFooter className="pt-4">
+            <DialogFooter className="pt-4 gap-2">
               <DialogClose asChild><Button variant="outline" className="bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
               <Button type="submit" className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white">حفظ</Button>
             </DialogFooter>
