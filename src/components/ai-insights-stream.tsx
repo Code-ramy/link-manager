@@ -44,42 +44,40 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     listeners,
     setNodeRef,
     transform,
-    transition: sortableTransition,
+    transition,
     isDragging,
   } = useSortable({
     id,
+    // A slightly faster and smoother transition for items moving out of the way.
     transition: {
-      duration: 300, // A balanced duration for smoothness
-      easing: 'cubic-bezier(0.4, 0, 0.2, 1)', // A standard ease-in-out
+      duration: 250,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
 
-  // This transition handles the "drop" animation (scale, shadow)
-  const dropAnimationTransition = 'transform 200ms ease, box-shadow 200ms ease';
-  
-  // When dragging, no transition for instant feedback.
-  // When an item is moving aside, use dnd-kit's transition.
-  // When an item is dropped, use our custom drop animation.
-  const finalTransition = isDragging ? 'none' : (sortableTransition || dropAnimationTransition);
-
+  // This style is for the dnd-kit tracked element. It only handles position and stacking.
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: finalTransition,
+    transition: transition,
     zIndex: isDragging ? 10 : 'auto',
+    position: 'relative' as React.CSSProperties['position'],
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={cn(
-        // The scale/rotate is a transform, so it will be animated by `finalTransition`.
-        isDragging && 'scale-105 -rotate-1 shadow-2xl'
-      )}
-    >
-      {children}
+    // This is the wrapper that dnd-kit uses for layout calculations and event listeners.
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {/* This inner div is for purely visual animations (the "lift" effect),
+          preventing conflicts with the layout transform. */}
+      <div
+        className={cn(
+          'transition-all duration-200',
+          isDragging
+            ? 'scale-105 -rotate-1 shadow-xl'
+            : 'scale-100 rotate-0 shadow-none'
+        )}
+      >
+        {children}
+      </div>
     </div>
   );
 };
