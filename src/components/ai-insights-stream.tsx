@@ -42,7 +42,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition,
   };
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
@@ -60,33 +60,39 @@ const getFaviconUrl = (url: string) => {
   }
 };
 
-function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, categories: Category[], onSave: (data: WebApp) => void, children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: WebApp | null, categories: Category[], onSave: (data: WebApp) => void, open: boolean, onOpenChange: (open: boolean) => void }) {
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
-    defaultValues: app || { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' },
+    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' },
   });
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
-  const [iconPreview, setIconPreview] = useState(app?.icon || '');
+  const [iconPreview, setIconPreview] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (app) {
-      form.reset(app);
-      setIconPreview(app.icon);
-    } else {
-      form.reset({ name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' });
-      setIconPreview('');
+    if (open) {
+      if (app) {
+        form.reset(app);
+        setIconPreview(app.icon);
+      } else {
+        form.reset({ name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' });
+        setIconPreview('');
+      }
     }
-  }, [app, form, categories]);
+  }, [app, open, categories, form]);
 
   useEffect(() => {
-    if (urlToFetch) {
+    const currentUrl = form.getValues('url');
+    if (urlToFetch && z.string().url().safeParse(urlToFetch).success) {
       const newFavicon = getFaviconUrl(urlToFetch);
       if (newFavicon && (!app || urlToFetch !== app.url)) {
         setIconPreview(newFavicon);
         form.setValue('icon', newFavicon, { shouldValidate: true });
       }
+    } else if (!currentUrl && !app) {
+       setIconPreview('');
+       form.setValue('icon', 'Globe');
     }
   }, [urlToFetch, app, form]);
 
@@ -105,14 +111,11 @@ function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, ca
 
   const onSubmit = (data: z.infer<typeof appSchema>) => {
     onSave({ ...data, id: app?.id || crypto.randomUUID() });
-    setOpen(false);
-    form.reset();
-    setIconPreview('');
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] modal-card">
         <DialogHeader>
           <DialogTitle>{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
@@ -122,15 +125,25 @@ function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, ca
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex items-center gap-4">
-              {iconPreview ? (
-                <img src={iconPreview} alt="Preview" className="w-16 h-16 rounded-2xl object-contain bg-white/10" />
-              ) : (
-                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
-                  <LucideIcons.ImageIcon className="w-8 h-8 text-muted-foreground" />
-                </div>
-              )}
-              <Input type="file" accept="image/*" onChange={handleFileChange} className="flex-1" />
+            <div className="flex items-center justify-center flex-col gap-4">
+               <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center">
+                {iconPreview ? (
+                    <img src={iconPreview} alt="Preview" className="w-full h-full object-contain rounded-2xl" />
+                ) : (
+                    <LucideIcons.ImageIcon className="w-10 h-10 text-muted-foreground" />
+                )}
+              </div>
+              <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <LucideIcons.Upload className="mr-2 h-4 w-4" />
+                رفع أيقونة
+              </Button>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                ref={fileInputRef}
+              />
             </div>
 
             <FormField
@@ -153,7 +166,7 @@ function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, ca
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>الفئة</FormLabel>
-                  <select {...field} defaultValue={field.value} className="w-full p-2 rounded-md bg-input border border-border">
+                   <select {...field} defaultValue={field.value} className="w-full p-2 rounded-md bg-input border border-border">
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                   <FormMessage />
@@ -171,10 +184,15 @@ function EditAppDialog({ app, categories, onSave, children }: { app?: WebApp, ca
   );
 }
 
-function ManageCategoriesDialog({ categories, setCategories, onCategoriesUpdate, children }: { categories: Category[], setCategories: (cats: Category[]) => void, onCategoriesUpdate: (cats: Category[]) => void, children: React.ReactNode }) {
+function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { categories: Category[], onCategoriesUpdate: (cats: Category[]) => void, children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [internalCategories, setInternalCategories] = useState(categories);
 
+  useEffect(() => {
+    setInternalCategories(categories);
+  }, [categories, open]);
+  
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: 'Globe' },
@@ -185,34 +203,40 @@ function ManageCategoriesDialog({ categories, setCategories, onCategoriesUpdate,
   const handleSave = (data: z.infer<typeof categorySchema>) => {
     let updatedCategories;
     if (editingCategory) {
-      updatedCategories = categories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
+      updatedCategories = internalCategories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
     } else {
-      updatedCategories = [...categories, { ...data, id: crypto.randomUUID() }];
+      updatedCategories = [...internalCategories, { ...data, id: crypto.randomUUID() }];
     }
-    setCategories(updatedCategories);
+    setInternalCategories(updatedCategories);
     onCategoriesUpdate(updatedCategories);
     setEditingCategory(null);
     form.reset({ name: '', icon: 'Globe' });
   };
 
   const handleDelete = (id: string) => {
-    const updatedCategories = categories.filter(c => c.id !== id);
-    setCategories(updatedCategories);
+    const updatedCategories = internalCategories.filter(c => c.id !== id);
+    setInternalCategories(updatedCategories);
     onCategoriesUpdate(updatedCategories);
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over?.id) {
-      const oldIndex = categories.findIndex((c) => c.id === active.id);
-      const newIndex = categories.findIndex((c) => c.id === over!.id);
-      const newOrder = arrayMove(categories, oldIndex, newIndex);
-      setCategories(newOrder);
-      onCategoriesUpdate(newOrder);
+      setInternalCategories((items) => {
+        const oldIndex = items.findIndex((c) => c.id === active.id);
+        const newIndex = items.findIndex((c) => c.id === over!.id);
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        onCategoriesUpdate(newOrder);
+        return newOrder;
+      });
     }
   };
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 5,
+    },
+  }));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -225,11 +249,12 @@ function ManageCategoriesDialog({ categories, setCategories, onCategoriesUpdate,
 
         <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
           <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={categories.map(c => c.id)} strategy={rectSortingStrategy}>
-              {categories.map(c => (
+            <SortableContext items={internalCategories.map(c => c.id)} strategy={rectSortingStrategy}>
+              {internalCategories.map(c => (
                 <SortableItem key={c.id} id={c.id}>
-                  <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
+                    <div className="flex items-center gap-3">
+                      <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
                       {getIcon(c.icon)}
                       <span>{c.name}</span>
                     </div>
@@ -292,8 +317,8 @@ const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, o
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
       <a href={app.url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16">
-        <div className="w-full h-full rounded-2xl bg-black/20 p-1 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-blue-500/30">
-          <div className="w-full h-full rounded-[10px] bg-gradient-to-br from-gray-700/50 to-gray-900/50 flex items-center justify-center overflow-hidden">
+         <div className="w-full h-full rounded-2xl p-1 transition-all duration-300 group-hover:scale-110">
+          <div className="w-full h-full flex items-center justify-center overflow-hidden">
             {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             ) : (
@@ -303,16 +328,16 @@ const AppIcon = ({ app, onEdit, onDelete }: { app: WebApp, onEdit: () => void, o
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-0 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
               <LucideIcons.MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onSelect={onEdit}>تعديل</DropdownMenuItem>
-            <DropdownMenuItem onSelect={onDelete} className="text-destructive">حذف</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onEdit}><LucideIcons.Pencil className="w-4 h-4 ml-2"/>تعديل</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onDelete} className="text-destructive"><LucideIcons.Trash2 className="w-4 h-4 ml-2"/>حذف</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -326,6 +351,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const [currentFilter, setCurrentFilter] = useState('all');
 
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
+  const [isEditAppOpen, setIsEditAppOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState<WebApp | null>(null);
 
   const filterNavRef = useRef<HTMLDivElement>(null);
@@ -372,8 +398,17 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       setApps([...apps, appData]);
       toast({ title: "تمت الإضافة بنجاح!" });
     }
-    setEditingApp(null);
   };
+  
+  const handleOpenAddDialog = () => {
+    setEditingApp(null);
+    setIsEditAppOpen(true);
+  }
+
+  const handleOpenEditDialog = (app: WebApp) => {
+    setEditingApp(app);
+    setIsEditAppOpen(true);
+  }
 
   const handleDeleteApp = () => {
     if (appToDelete) {
@@ -399,10 +434,14 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   return (
     <>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header className="text-center mb-8 mt-4">
-          <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+        <header className="flex justify-between items-center text-center mb-8 mt-4">
+          <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
             ساحة عرض تطبيقات الويب
           </h1>
+          <Button size="lg" className="rounded-full shadow-lg" onClick={handleOpenAddDialog}>
+            <LucideIcons.Plus className="w-5 h-5 ml-2" />
+            إضافة تطبيق
+          </Button>
         </header>
 
         <div className="flex justify-center mb-10">
@@ -442,7 +481,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </button>
               ))}
             </nav>
-            <ManageCategoriesDialog categories={categories} setCategories={setCategories} onCategoriesUpdate={setCategories}>
+            <ManageCategoriesDialog categories={categories} onCategoriesUpdate={setCategories}>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -467,7 +506,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   <SortableItem key={app.id} id={app.id}>
                     <AppIcon
                       app={app}
-                      onEdit={() => { setEditingApp(app); }}
+                      onEdit={() => handleOpenEditDialog(app)}
                       onDelete={() => setAppToDelete(app)}
                     />
                   </SortableItem>
@@ -478,20 +517,13 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </main>
       </div>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-        <EditAppDialog categories={categories} onSave={handleSaveApp} app={editingApp || undefined}>
-          <Button size="lg" className="rounded-full shadow-lg" onClick={() => setEditingApp(null)}>
-            <LucideIcons.Plus className="w-5 h-5 ml-2" />
-            إضافة تطبيق
-          </Button>
-        </EditAppDialog>
-      </div>
-
-      <Dialog open={!!editingApp} onOpenChange={(isOpen) => !isOpen && setEditingApp(null)}>
-        <EditAppDialog categories={categories} onSave={handleSaveApp} app={editingApp || undefined}>
-          <span></span>
-        </EditAppDialog>
-      </Dialog>
+      <EditAppDialog
+        open={isEditAppOpen}
+        onOpenChange={setIsEditAppOpen}
+        categories={categories}
+        onSave={handleSaveApp}
+        app={editingApp}
+      />
 
       <Dialog open={!!appToDelete} onOpenChange={(isOpen) => !isOpen && setAppToDelete(null)}>
         <DialogContent className="modal-card">
