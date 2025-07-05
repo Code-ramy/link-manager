@@ -97,8 +97,8 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
 
     const modalVariants = {
         hidden: { opacity: 0, scale: 0.97 },
-        visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' } },
-        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.2, ease: 'cubic-bezier(0.55, 0.085, 0.68, 0.53)' } },
+        visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
+        exit: { opacity: 0, scale: 0.97, transition: { duration: 0.2, ease: [0.55, 0.085, 0.68, 0.53] } },
     };
     
     const modalBackdropVariants = {
