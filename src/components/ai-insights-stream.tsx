@@ -66,20 +66,26 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 350,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+      duration: 250,
+      easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     },
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
+    transition,
   };
+
+  const sortableItemStyle = isDragging ? {
+    ...style,
+    transition: 'none',
+  } : style;
+
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={sortableItemStyle}
       {...attributes}
       {...listeners}
     >
