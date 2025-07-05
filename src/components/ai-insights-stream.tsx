@@ -516,7 +516,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
             ساحة عرض تطبيقات الويب
           </h1>
-          <Button size="lg" className="rounded-full shadow-lg" onClick={handleOpenAddDialog}>
+          <Button size="lg" className="bg-[#4285F4] hover:bg-[#4285F4]/90 text-white" onClick={handleOpenAddDialog}>
             <LucideIcons.Plus className="w-5 h-5 ml-2" />
             إضافة تطبيق
           </Button>
