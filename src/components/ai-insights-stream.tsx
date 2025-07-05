@@ -2,20 +2,48 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Link as LinkIcon, X } from 'lucide-react';
+import { 
+    Check, 
+    Link as LinkIcon, 
+    X,
+    Megaphone,
+    Wrench,
+    Package,
+    Users,
+    Bookmark,
+    CalendarDays,
+    type LucideProps
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { AiDevelopment } from '@/lib/types';
 import { getCategoryText } from '@/lib/data';
-import { icons, Icon } from './icons';
 
+// --- Icon Component ---
+const iconMap = {
+    Megaphone,
+    Wrench,
+    Package,
+    Users,
+    Bookmark,
+    CalendarDays,
+};
+
+const CardIcon = ({ name, ...props }: { name: string } & LucideProps) => {
+    const LucideIcon = iconMap[name as keyof typeof iconMap];
+    if (!LucideIcon) return null; // Or a fallback icon
+    return <LucideIcon {...props} />;
+};
+// ---
+
+// --- Formatted Text Component ---
 const FormattedText = ({ text }: { text: string }) => {
   const parts = text.split(/\*\*(.*?)\*\*/g);
   return (
-    <p className="text-gray-300 leading-relaxed">
+    <p className="text-muted-foreground leading-relaxed">
       {parts.map((part, index) =>
         index % 2 === 1 ? (
-          <strong key={index} className="text-white font-medium">
+          <strong key={index} className="text-foreground font-medium">
             {part}
           </strong>
         ) : (
@@ -26,6 +54,7 @@ const FormattedText = ({ text }: { text: string }) => {
   );
 };
 
+// --- Filter Button Component ---
 const FilterButton = ({
   filter,
   currentFilter,
@@ -47,26 +76,30 @@ const FilterButton = ({
     )}
     onClick={() => onClick(filter)}
   >
-    {icon && <Icon svg={icon} />}
+    {icon && <CardIcon name={icon} className="h-4 w-4" />}
     <span>{text}</span>
   </button>
 );
 
 
+// --- Animation Variants ---
 const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
+    scale: 1,
     transition: {
       delay: i * 0.05,
-      duration: 0.3,
-      ease: "easeOut",
+      type: "spring",
+      stiffness: 300,
+      damping: 25,
     },
   }),
   exit: {
     opacity: 0,
-    y: -20,
+    y: -30,
+    scale: 0.98,
     transition: {
       duration: 0.2,
       ease: "easeIn",
@@ -76,14 +109,14 @@ const cardVariants = {
 
 const modalBackdropVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.3, delay: 0.1 } },
 };
 
 const modalContentVariants = {
-    hidden: { scale: 0.95, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 30 } },
-    exit: { scale: 0.95, opacity: 0, transition: { duration: 0.2 } },
+    hidden: { scale: 0.9, opacity: 0 },
+    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 30, delay: 0.1 } },
+    exit: { scale: 0.9, opacity: 0, transition: { duration: 0.2 } },
 };
 
 
@@ -120,10 +153,10 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
 
     const filters = [
       { key: 'all', text: 'الكل' },
-      { key: 'official', text: 'رسمي', icon: icons.official },
-      { key: 'tools', text: 'أدوات', icon: icons.tools },
-      { key: 'products', text: 'منتجات', icon: icons.products },
-      { key: 'community', text: 'مجتمعي', icon: icons.community },
+      { key: 'official', text: 'رسمي', icon: 'Megaphone' },
+      { key: 'tools', text: 'أدوات', icon: 'Wrench' },
+      { key: 'products', text: 'منتجات', icon: 'Package' },
+      { key: 'community', text: 'مجتمعي', icon: 'Users' },
     ];
 
     return (
@@ -133,9 +166,9 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     <motion.h1 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4" 
-                        style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="font-headline text-4xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 mb-4" 
+                        style={{ textShadow: '0 5px 25px rgba(0,0,0,0.3)' }}
                     >
                         آخر تطورات Google في الذكاء الاصطناعي
                     </motion.h1>
@@ -164,8 +197,8 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     <AnimatePresence>
                         {filteredDevelopments.map((item, index) => (
                             <motion.div 
-                                layout
-                                key={`${item.title}-${index}`} 
+                                layout="position"
+                                key={item.title} 
                                 variants={cardVariants}
                                 initial="hidden"
                                 animate="visible"
@@ -179,19 +212,19 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                             >
                                 <div>
                                     <div className="flex justify-between items-start mb-4">
-                                        <span className="text-xs font-medium px-3 py-1 rounded-md bg-black/20 text-gray-300 border border-white/10">{getCategoryText(item.category)}</span>
-                                        <Icon svg={item.icon} className="text-gray-400" />
+                                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">{getCategoryText(item.category)}</span>
+                                        <CardIcon name={item.icon} className="text-muted-foreground w-5 h-5" />
                                     </div>
-                                    <h3 className="font-headline font-bold text-xl text-white mb-3 h-16">{item.title}</h3>
-                                    <p className="text-gray-400 text-sm leading-relaxed h-20">{item.shortDesc}</p>
+                                    <h3 className="font-headline font-bold text-xl text-foreground mb-3 h-16">{item.title}</h3>
+                                    <p className="text-muted-foreground text-sm leading-relaxed h-20">{item.shortDesc}</p>
                                 </div>
-                                <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                                <div className="text-xs mt-6 pt-4 border-t border-border flex justify-between items-center">
                                     <span className="font-semibold flex items-center gap-2 text-yellow-400">
-                                      <Icon svg={icons.source}/>
+                                      <Bookmark className="h-3.5 w-3.5" />
                                       <span>{item.source}</span>
                                     </span>
                                     <span className="flex items-center gap-1.5 text-green-400">
-                                      <Icon svg={icons.date}/>
+                                      <CalendarDays className="h-3.5 w-3.5" />
                                       <span>{item.date}</span>
                                     </span>
                                 </div>
@@ -205,8 +238,7 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                 {selectedItem && (
                     <motion.div 
                         id="modal-backdrop" 
-                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/50" 
-                        style={{ backdropFilter: 'blur(5px)' }} 
+                        className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/60" 
                         onClick={closeModal}
                         variants={modalBackdropVariants}
                         initial="hidden"
@@ -215,28 +247,26 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     >
                         <motion.div 
                             id="modal-content" 
-                            className="modal-card w-full max-w-2xl rounded-2xl shadow-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
+                            className="modal-card w-full max-w-2xl rounded-2xl shadow-2xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                             variants={modalContentVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
                         >
-                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-gray-300 hover:text-white transition rounded-full h-8 w-8" onClick={closeModal}>
+                            <Button variant="ghost" size="icon" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground transition rounded-full h-8 w-8" onClick={closeModal}>
                                 <X className="h-5 w-5" />
                             </Button>
                             <div id="modal-body">
-                                <div className="flex flex-col gap-4 pb-4 border-b border-white/10">
-                                    <div className="flex items-center gap-4">
-                                        <span className="bg-gradient-to-br from-primary/30 to-accent/30 p-3 rounded-xl text-white">
-                                            <Icon svg={selectedItem.icon.replace('width="20"','width="28"').replace('height="20"','height="28"')} />
-                                        </span>
-                                        <div>
-                                            <h2 className="font-headline text-xl sm:text-2xl font-bold text-white">{selectedItem.title}</h2>
-                                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                                                <p className="font-semibold flex items-center gap-2"><Icon svg={icons.source} /><span>{selectedItem.source}</span></p>
-                                                <p className="flex items-center gap-2"><Icon svg={icons.date} /><span>{selectedItem.date}</span></p>
-                                            </div>
+                                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 pb-4 border-b border-border">
+                                    <div className="bg-gradient-to-br from-primary/20 to-accent/20 p-4 rounded-xl text-primary flex-shrink-0">
+                                        <CardIcon name={selectedItem.icon} className="w-8 h-8" />
+                                    </div>
+                                    <div className="flex-grow">
+                                        <h2 className="font-headline text-xl sm:text-2xl font-bold text-foreground">{selectedItem.title}</h2>
+                                        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                                            <p className="font-semibold flex items-center gap-2"><Bookmark className="w-3.5 h-3.5 text-yellow-500" /><span>{selectedItem.source}</span></p>
+                                            <p className="flex items-center gap-2"><CalendarDays className="w-3.5 h-3.5 text-green-500" /><span>{selectedItem.date}</span></p>
                                         </div>
                                     </div>
                                 </div>
@@ -245,8 +275,8 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                                     {selectedItem.details.map((detail, index) => (
                                         <div key={index} className="flex items-start gap-4">
                                             <div className="relative flex-shrink-0 mt-1.5">
-                                                <div className="absolute top-2.5 right-1/2 translate-x-1/2 h-full w-0.5 bg-primary/30 rounded-full"></div>
-                                                <Check className="relative z-10 w-5 h-5 text-primary bg-[#171424] p-0.5 rounded-full" />
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 h-full w-0.5 bg-primary/20"></div>
+                                                <Check className="relative z-10 w-5 h-5 text-primary bg-background p-0.5 rounded-full border-2 border-primary/50" />
                                             </div>
                                             <div className="w-full">
                                                 <FormattedText text={detail} />
@@ -256,8 +286,8 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                                 </div>
 
                                 {selectedItem.link && selectedItem.link !== '#' && (
-                                    <div className="mt-2 pt-6 border-t border-white/10 flex justify-center">
-                                        <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-white font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 inline-flex items-center gap-2">
+                                    <div className="mt-2 pt-6 border-t border-border flex justify-center">
+                                        <a href={selectedItem.link} target="_blank" rel="noopener noreferrer" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 px-6 rounded-full transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg shadow-primary/20">
                                             <span>اقرأ المصدر</span>
                                             <LinkIcon className="h-4 w-4" />
                                         </a>
