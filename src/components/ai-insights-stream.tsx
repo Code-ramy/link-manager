@@ -41,6 +41,21 @@ const getIcon = (name: string, props: any = {}) => {
   return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
 };
 
+const containerVariants = {
+  visible: {
+    transition: { staggerChildren: 0.05 },
+  },
+  hidden: {
+    transition: { staggerChildren: 0.03, staggerDirection: -1 },
+  },
+};
+
+const itemVariants = {
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.6, -0.05, 0.01, 0.99] } },
+    hidden: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+};
+
+
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
   const {
     attributes,
@@ -68,10 +83,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
       {...attributes}
       {...listeners}
       layout="position"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
+      variants={itemVariants}
     >
       <div
         className={cn(
@@ -602,8 +614,15 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             onDragCancel={handleAppDragCancel}
           >
             <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
-                <AnimatePresence>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentFilter}
+                  className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                >
                   {filteredApps.map((app) => (
                     <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
                       <AppIcon
@@ -614,8 +633,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                       />
                     </SortableItem>
                   ))}
-                </AnimatePresence>
-              </div>
+                </motion.div>
+              </AnimatePresence>
             </SortableContext>
           </DndContext>
         </main>
