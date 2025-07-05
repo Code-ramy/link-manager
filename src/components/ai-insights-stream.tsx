@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, Link as LinkIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -34,17 +34,17 @@ const FilterButton = ({
 }: {
   filter: string;
   currentFilter: string;
-  onClick: (e: React.MouseEvent<HTMLButtonElement>, filter: string) => void;
+  onClick: (filter: string) => void;
   icon?: string;
   text: string;
 }) => (
   <button
     data-filter={filter}
     className={cn(
-      'font-headline filter-btn py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-all transform hover:scale-105 shrink-0 flex items-center gap-2',
-      currentFilter === filter ? 'active-btn text-white' : 'text-gray-300'
+      'filter-btn py-2 px-5 text-sm font-medium rounded-full transition-all shrink-0 flex items-center gap-2',
+      currentFilter === filter ? 'active-btn' : ''
     )}
-    onClick={(e) => onClick(e, filter)}
+    onClick={() => onClick(filter)}
   >
     {icon && <Icon svg={icon} />}
     <span>{text}</span>
@@ -59,26 +59,9 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     const [isModalClosing, setIsModalClosing] = useState(false);
     const [cardsLoading, setCardsLoading] = useState(true);
 
-    const filterNavRef = useRef<HTMLElement>(null);
-    const activeMarkerRef = useRef<HTMLDivElement>(null);
-
-    const moveMarker = (targetButton: HTMLElement | null) => {
-        if (filterNavRef.current && activeMarkerRef.current && targetButton) {
-            const navRect = filterNavRef.current.getBoundingClientRect();
-            const targetRect = targetButton.getBoundingClientRect();
-            const offsetX = targetRect.left - navRect.left;
-            const offsetY = targetRect.top - navRect.top;
-            activeMarkerRef.current.style.width = `${targetRect.width}px`;
-            activeMarkerRef.current.style.height = `${targetRect.height}px`;
-            activeMarkerRef.current.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        }
-    };
-
     useEffect(() => {
         setFilteredDevelopments(developments);
         setCardsLoading(false);
-        const initialActiveButton = filterNavRef.current?.querySelector('[data-filter="all"]');
-        setTimeout(() => moveMarker(initialActiveButton as HTMLElement), 100);
     }, [developments]);
 
     useEffect(() => {
@@ -93,18 +76,8 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
         return () => clearTimeout(timer);
     }, [currentFilter, developments]);
 
-    useEffect(() => {
-        const handleResize = () => {
-            const activeBtn = filterNavRef.current?.querySelector('.active-btn');
-            if (activeBtn) moveMarker(activeBtn as HTMLElement);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const handleFilterClick = (e: React.MouseEvent<HTMLButtonElement>, filter: string) => {
+    const handleFilterClick = (filter: string) => {
         setCurrentFilter(filter);
-        moveMarker(e.currentTarget);
     };
 
     const handleCardClick = (item: AiDevelopment) => {
@@ -142,15 +115,14 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
     return (
         <>
             <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
-                <header className="text-center mb-10">
-                    <h1 className="font-headline text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                <header className="text-center mb-16 mt-8">
+                    <h1 className="font-headline text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.3)' }}>
                         آخر تطورات Google في الذكاء الاصطناعي
                     </h1>
                 </header>
                 
                 <div className="flex flex-col items-center gap-6 mb-12">
-                    <nav id="filter-nav" ref={filterNavRef} className="flex items-center justify-center flex-wrap gap-2 p-2 rounded-full relative">
-                        <div id="active-marker" ref={activeMarkerRef}></div>
+                    <nav id="filter-nav" className="flex items-center justify-center flex-wrap gap-2 p-1.5 rounded-full relative">
                         {filters.map(f => (
                           <FilterButton 
                             key={f.key}
@@ -164,11 +136,11 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                     </nav>
                 </div>
 
-                <main id="cards-container" className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 cards-container', { 'loading': cardsLoading })}>
+                <main id="cards-container" className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 cards-container', { 'loading': cardsLoading })}>
                     {filteredDevelopments.map((item, index) => (
                         <div 
                             key={`${item.title}-${index}`} 
-                            className="glass-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer fade-in-up"
+                            className="glass-card p-6 flex flex-col justify-between cursor-pointer fade-in-up"
                             style={{ animationDelay: `${index * 70}ms` }}
                             onClick={() => handleCardClick(item)}
                             role="button"
@@ -177,13 +149,13 @@ export function AiInsightsStream({ developments }: { developments: AiDevelopment
                         >
                             <div>
                                 <div className="flex justify-between items-start mb-4">
-                                    <Icon svg={item.icon} className="text-gray-300" />
-                                    <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/20 text-gray-200 border border-white/10">{getCategoryText(item.category)}</span>
+                                    <span className="text-xs font-medium px-3 py-1 rounded-md bg-black/20 text-gray-300 border border-white/10">{getCategoryText(item.category)}</span>
+                                    <Icon svg={item.icon} className="text-gray-400" />
                                 </div>
-                                <h3 className="font-headline font-bold text-lg text-white mb-2">{item.title}</h3>
-                                <p className="text-gray-300 text-sm leading-relaxed">{item.shortDesc}</p>
+                                <h3 className="font-headline font-bold text-xl text-white mb-3 h-16">{item.title}</h3>
+                                <p className="text-gray-400 text-sm leading-relaxed h-20">{item.shortDesc}</p>
                             </div>
-                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-400">
+                            <div className="text-xs mt-6 pt-4 border-t border-white/10 flex justify-between items-center text-gray-500">
                                 <span className="font-semibold flex items-center gap-2">
                                   <Icon svg={icons.source}/>
                                   <span>{item.source}</span>
