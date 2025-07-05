@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -48,17 +49,17 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     isDragging,
   } = useSortable({
     id,
-    // A slightly faster and smoother transition for items moving out of the way.
     transition: {
-      duration: 250,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+      duration: 350, // A duration that feels quick but allows for the animation to be seen
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)', // A smooth "ease-out" curve
     },
   });
 
-  // This style is for the dnd-kit tracked element. It only handles position and stacking.
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition,
+    // Apply the transition to all items except the one being dragged
+    // This makes the dragged item follow the cursor instantly
+    transition: isDragging ? undefined : transition,
     zIndex: isDragging ? 10 : 'auto',
     position: 'relative' as React.CSSProperties['position'],
   };
@@ -70,7 +71,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
           preventing conflicts with the layout transform. */}
       <div
         className={cn(
-          'transition-all duration-200',
+          'transition-transform duration-200',
           isDragging
             ? 'scale-105 -rotate-1 shadow-xl'
             : 'scale-100 rotate-0 shadow-none'
