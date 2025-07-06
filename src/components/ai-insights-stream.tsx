@@ -642,19 +642,19 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium">
+            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium">
               <LucideIcons.Upload className="mr-2 h-4 w-4" />
               Import
             </Button>
-            <Button variant="outline" className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium">
+            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium">
               <LucideIcons.Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm" onClick={() => setIsManageCategoriesOpen(true)}>
+            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm" onClick={() => setIsManageCategoriesOpen(true)}>
               <LucideIcons.Settings className="mr-2 h-4 w-4" />
               Manage Categories
             </Button>
-            <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm" onClick={handleOpenAddDialog}>
+            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm" onClick={handleOpenAddDialog}>
               <LucideIcons.Plus className="mr-2 h-4 w-4" />
               Add App
             </Button>
@@ -788,5 +788,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
+
+    
 
     
