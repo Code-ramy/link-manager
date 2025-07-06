@@ -267,10 +267,16 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
   );
 }
 
-function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { categories: Category[], onCategoriesUpdate: (cats: Category[]) => void, children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUpdate }: { open: boolean, onOpenChange: (isOpen: boolean) => void, categories: Category[], onCategoriesUpdate: (cats: Category[]) => void }) {
+  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setLocalCategories(categories);
+    }
+  }, [open, categories]);
 
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -280,22 +286,23 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 
   const iconList = Object.keys(LucideIcons).filter(k => k.match(/^[A-Z]/) && k !== 'Icon' && !k.endsWith('Provider'));
 
-  const handleSave = (data: z.infer<typeof categorySchema>) => {
-    let updatedCategories;
+  const handleSaveCategory = (data: z.infer<typeof categorySchema>) => {
     if (editingCategory) {
-      updatedCategories = categories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
+      setLocalCategories(localCategories.map(c => c.id === editingCategory.id ? { ...editingCategory, ...data } : c));
     } else {
-      updatedCategories = [...categories, { ...data, id: crypto.randomUUID() }];
+      setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
-    onCategoriesUpdate(updatedCategories);
     setEditingCategory(null);
     form.reset({ name: '', icon: 'Globe' });
   };
 
-  const handleDelete = (id: string) => {
-    const updatedCategories = categories.filter(c => c.id !== id);
-    onCategoriesUpdate(updatedCategories);
-  }
+  const handleDeleteCategory = (id: string) => {
+    if (editingCategory?.id === id) {
+      setEditingCategory(null);
+      form.reset({ name: '', icon: 'Globe' });
+    }
+    setLocalCategories(localCategories.filter(c => c.id !== id));
+  };
   
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -303,15 +310,15 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   
   const handleDragCancel = () => {
     setActiveId(null);
-  }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = categories.findIndex((c) => c.id === active.id);
-      const newIndex = categories.findIndex((c) => c.id === over.id);
-      onCategoriesUpdate(arrayMove(categories, oldIndex, newIndex));
+      const oldIndex = localCategories.findIndex((c) => c.id === active.id);
+      const newIndex = localCategories.findIndex((c) => c.id === over.id);
+      setLocalCategories(arrayMove(localCategories, oldIndex, newIndex));
     }
   };
 
@@ -329,9 +336,13 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
     }
   }, [editingCategory, form]);
 
+  const handleSaveChanges = () => {
+    onCategoriesUpdate(localCategories);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card">
         <DialogHeader>
           <DialogTitle>إدارة الفئات</DialogTitle>
@@ -340,8 +351,8 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 
         <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
-            <SortableContext items={categories.map(c => c.id)} strategy={rectSortingStrategy}>
-              {categories.map(c => (
+            <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
+              {localCategories.map(c => (
                 <SortableItem key={c.id} id={c.id} isDragging={activeId === c.id}>
                   <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
                     <div className="flex items-center gap-3">
@@ -353,7 +364,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategory(c)}>
                         <LucideIcons.Pencil className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteCategory(c.id)}>
                         <LucideIcons.Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -365,7 +376,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 pt-4 border-t border-white/10">
+          <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
             <h4 className="font-bold">{editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}</h4>
             <div className="flex gap-4">
               <FormField control={form.control} name="name" render={({ field }) => (
@@ -393,12 +404,16 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
                 </FormItem>
               )} />
             </div>
-            <DialogFooter>
-              <Button type="submit">حفظ الفئة</Button>
-              {editingCategory && <Button variant="outline" onClick={() => { setEditingCategory(null); form.reset({ name: '', icon: 'Globe' }); }}>إلغاء التعديل</Button>}
-            </DialogFooter>
+            <div className="flex justify-end gap-2 mt-2">
+              <Button type="submit">{editingCategory ? 'تحديث الفئة' : 'إضافة فئة'}</Button>
+              {editingCategory && <Button variant="outline" type="button" onClick={() => { setEditingCategory(null); form.reset({ name: '', icon: 'Globe' }); }}>إلغاء التعديل</Button>}
+            </div>
           </form>
         </Form>
+        <DialogFooter className="pt-4 mt-4 border-t border-white/10">
+            <DialogClose asChild><Button variant="outline">إلغاء</Button></DialogClose>
+            <Button onClick={handleSaveChanges}>حفظ التغييرات</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -463,6 +478,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
   const [isEditAppOpen, setIsEditAppOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState<WebApp | null>(null);
+  const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
 
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
@@ -607,20 +623,18 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </button>
               ))}
             </nav>
-            <ManageCategoriesDialog categories={categories} onCategoriesUpdate={setCategories}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full bg-black/20 border border-white/10">
-                      <LucideIcons.Settings className="w-5 h-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>إدارة الفئات</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </ManageCategoriesDialog>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={() => setIsManageCategoriesOpen(true)} variant="ghost" size="icon" className="rounded-full bg-black/20 border border-white/10">
+                    <LucideIcons.Settings className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>إدارة الفئات</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
@@ -666,6 +680,13 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         categories={categories}
         onSave={handleSaveApp}
         app={editingApp}
+      />
+      
+      <ManageCategoriesDialog
+        open={isManageCategoriesOpen}
+        onOpenChange={setIsManageCategoriesOpen}
+        categories={categories}
+        onCategoriesUpdate={setCategories}
       />
 
       <Dialog open={!!appToDelete} onOpenChange={(isOpen) => !isOpen && setAppToDelete(null)}>
