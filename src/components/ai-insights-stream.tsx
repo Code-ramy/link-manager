@@ -603,6 +603,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const markerRef = useRef<HTMLDivElement>(null);
   const dndId = useId();
 
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const filteredApps = apps.filter(app => {
     if (currentFilter === 'all') return true;
     return app.categoryId === currentFilter;
@@ -764,38 +769,49 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </div>
 
         <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
-          <DndContext 
-            id={dndId}
-            sensors={sensors} 
-            collisionDetector={closestCenter} 
-            onDragStart={handleAppDragStart}
-            onDragEnd={handleAppDragEnd}
-            onDragCancel={handleAppDragCancel}
-          >
-            <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentFilter}
-                  className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                >
-                  {filteredApps.map((app) => (
-                    <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
-                      <AppIcon
-                        app={app}
-                        onEdit={() => handleOpenEditDialog(app)}
-                        onDelete={() => setAppToDelete(app)}
-                        isDragging={activeId === app.id}
-                      />
-                    </SortableItem>
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            </SortableContext>
-          </DndContext>
+          {hasMounted ? (
+            <DndContext 
+              id={dndId}
+              sensors={sensors} 
+              collisionDetector={closestCenter} 
+              onDragStart={handleAppDragStart}
+              onDragEnd={handleAppDragEnd}
+              onDragCancel={handleAppDragCancel}
+            >
+              <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentFilter}
+                    className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    {filteredApps.map((app) => (
+                      <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
+                        <AppIcon
+                          app={app}
+                          onEdit={() => handleOpenEditDialog(app)}
+                          onDelete={() => setAppToDelete(app)}
+                          isDragging={activeId === app.id}
+                        />
+                      </SortableItem>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
+                  <Skeleton className="w-16 h-16 rounded-lg" />
+                  <Skeleton className="h-4 w-20 rounded-md" />
+                </div>
+              ))}
+            </div>
+          )}
         </main>
       </div>
 
