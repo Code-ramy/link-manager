@@ -243,10 +243,10 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   control={form.control}
                   name="clip"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/10 bg-black/20 p-3 shadow-sm mt-2">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input bg-transparent p-3 shadow-sm mt-4">
                       <div className="space-y-0.5">
                         <FormLabel>قص الحواف</FormLabel>
-                        <FormDescription className="text-xs">
+                        <FormDescription className="text-xs text-muted-foreground/80">
                           تفعيل لتدوير حواف الأيقونات المربعة.
                         </FormDescription>
                       </div>
