@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from '@/hooks/use-toast';
@@ -69,7 +69,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 150,
+      duration: 100,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
@@ -165,7 +165,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
-            <div className="flex flex-col items-center gap-2 mb-4">
+            <div className="flex flex-col items-center gap-2 mb-2">
               <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
@@ -273,18 +273,18 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const [activeId, setActiveId] = useState<string | null>(null);
   const [iconPreview, setIconPreview] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dndId = useId();
 
   useEffect(() => {
     if (open) {
       setLocalCategories(JSON.parse(JSON.stringify(categories)));
     }
   }, [open, categories]);
-
+  
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', icon: 'Globe' },
+    defaultValues: { name: '', icon: 'data:,' },
   });
-  const dndId = useId();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -306,13 +306,15 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
       setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
     setEditingCategory(null);
-    form.reset({ name: '', icon: 'Globe' });
+    form.reset({ name: '', icon: 'data:,' });
+    setIconPreview('');
   };
 
   const handleDeleteCategory = (id: string) => {
     if (editingCategory?.id === id) {
       setEditingCategory(null);
-      form.reset({ name: '', icon: 'Globe' });
+      form.reset({ name: '', icon: 'data:,' });
+      setIconPreview('');
     }
     setLocalCategories(localCategories.filter(c => c.id !== id));
   };
@@ -346,7 +348,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
       form.reset(editingCategory);
       setIconPreview(editingCategory.icon);
     } else {
-      form.reset({ name: '', icon: 'Globe' });
+      form.reset({ name: '', icon: 'data:,' });
       setIconPreview('');
     }
   }, [editingCategory, form]);
@@ -363,6 +365,8 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
   const handleCancelEdit = () => {
     setEditingCategory(null);
+    setIconPreview('');
+    form.reset({ name: '', icon: 'data:,' });
   }
 
   return (
@@ -372,7 +376,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           <DialogTitle>إدارة الفئات</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[300px] overflow-y-auto my-4 -mr-4 pr-4">
+        <div className="max-h-[300px] overflow-y-auto overflow-x-hidden my-4 -mr-4 pr-4">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
@@ -420,10 +424,10 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                   <FormLabel>الأيقونة</FormLabel>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
-                        {iconPreview && (iconPreview.startsWith('data:image') || iconPreview.startsWith('http')) ? (
+                        {iconPreview && iconPreview !== 'data:,' ? (
                             <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
                         ) : (
-                            getIcon(iconPreview || 'Globe', { className: "w-7 h-7 text-muted-foreground" })
+                            <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                         )}
                     </div>
                     <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
@@ -431,7 +435,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                       رفع أيقونة
                     </Button>
                     <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
-                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                 </FormItem>
             </div>
