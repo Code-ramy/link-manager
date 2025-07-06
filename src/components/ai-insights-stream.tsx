@@ -550,7 +550,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       >
         <div
           className={cn(
-            'w-full h-full transition-all duration-300 ease-in-out flex items-center justify-center',
+            'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
             isDragging
               ? 'scale-110 shadow-2xl'
               : 'scale-100 shadow-none'
@@ -670,7 +670,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
-      distance: 8,
+      distance: 5,
     },
   }));
 
