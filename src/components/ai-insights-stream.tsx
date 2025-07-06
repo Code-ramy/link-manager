@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from '@/hooks/use-toast';
@@ -69,8 +69,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 350,
-      easing: 'cubic-bezier(0.19, 1, 0.22, 1)',
+      duration: 150,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
 
@@ -271,10 +271,11 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const [localCategories, setLocalCategories] = useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [iconPreview, setIconPreview] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
-      // Create a deep copy to avoid modifying the original state directly
       setLocalCategories(JSON.parse(JSON.stringify(categories)));
     }
   }, [open, categories]);
@@ -285,7 +286,18 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   });
   const dndId = useId();
 
-  const iconList = Object.keys(LucideIcons).filter(k => k.match(/^[A-Z]/) && k !== 'Icon' && !k.endsWith('Provider'));
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setIconPreview(dataUrl);
+        form.setValue('icon', dataUrl, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSaveCategory = (data: z.infer<typeof categorySchema>) => {
     if (editingCategory) {
@@ -332,8 +344,10 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   useEffect(() => {
     if (editingCategory) {
       form.reset(editingCategory);
+      setIconPreview(editingCategory.icon);
     } else {
       form.reset({ name: '', icon: 'Globe' });
+      setIconPreview('');
     }
   }, [editingCategory, form]);
 
@@ -347,6 +361,10 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     onOpenChange(false);
   }
 
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card">
@@ -354,7 +372,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           <DialogTitle>إدارة الفئات</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
+        <div className="max-h-[300px] overflow-y-auto my-4 -mr-4 pr-4">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
@@ -362,7 +380,13 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                   <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
                     <div className="flex items-center gap-3">
                       <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
-                      {getIcon(c.icon, {})}
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
+                            <img src={c.icon} alt={c.name} className="w-full h-full object-contain rounded-sm" />
+                        ) : (
+                            getIcon(c.icon, { className: "w-5 h-5" })
+                        )}
+                      </div>
                       <span>{c.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -383,41 +407,44 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
             <h4 className="font-bold">{editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}</h4>
-            <div className="flex items-end gap-4">
-              <FormField control={form.control} name="name" render={({ field }) => (
-                <FormItem className="flex-1"><FormLabel>اسم الفئة</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="icon" render={({ field }) => (
+            <div className="flex flex-col gap-4">
+                <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>اسم الفئة</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
                 <FormItem>
                   <FormLabel>الأيقونة</FormLabel>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-[120px] justify-between">
-                        <span className="truncate">{field.value}</span>
-                        {getIcon(field.value, { className: "w-4 h-4" })}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="max-h-60 overflow-y-auto">
-                      {iconList.map(iconName => (
-                        <DropdownMenuItem key={iconName} onSelect={() => form.setValue('icon', iconName)}>
-                          {getIcon(iconName, { className: "w-4 h-4 mr-2" })}
-                          <span>{iconName}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+                        {iconPreview && (iconPreview.startsWith('data:image') || iconPreview.startsWith('http')) ? (
+                            <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
+                        ) : (
+                            getIcon(iconPreview || 'Globe', { className: "w-7 h-7 text-muted-foreground" })
+                        )}
+                    </div>
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      <LucideIcons.Upload className="ml-2 h-4 w-4" />
+                      رفع أيقونة
+                    </Button>
+                    <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
+                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                  </div>
                 </FormItem>
-              )} />
-                 <div className="flex items-center gap-2">
-                    <Button type="submit">{editingCategory ? 'تحديث' : 'إضافة'}</Button>
-                    {editingCategory && <Button variant="ghost" type="button" onClick={() => { setEditingCategory(null); form.reset({ name: '', icon: 'Globe' }); }}>إلغاء</Button>}
-                </div>
+            </div>
+            
+            <div className="flex justify-end items-center gap-2 pt-2">
+              {editingCategory && <Button variant="ghost" type="button" onClick={handleCancelEdit}>إلغاء التعديل</Button>}
+              <Button type="submit">{editingCategory ? 'تحديث الفئة' : 'إضافة فئة'}</Button>
             </div>
           </form>
         </Form>
-        <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center">
-            <Button variant="outline" onClick={handleCancel} className="w-28">إلغاء</Button>
-            <Button onClick={handleSaveChanges} className="w-28">حفظ التغييرات</Button>
+        <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
+            <Button variant="outline" onClick={handleCancel} className="w-32">إلغاء</Button>
+            <Button onClick={handleSaveChanges} className="w-32">حفظ</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -623,7 +650,13 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                     currentFilter === c.id ? 'text-white' : 'text-gray-300 hover:text-white'
                   )}
                 >
-                  {getIcon(c.icon, {})}
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
+                      <img src={c.icon} alt={c.name} className="w-full h-full object-contain" />
+                    ) : (
+                      getIcon(c.icon, {})
+                    )}
+                  </div>
                   <span>{c.name}</span>
                 </button>
               ))}
