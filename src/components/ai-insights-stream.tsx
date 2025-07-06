@@ -403,10 +403,8 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
           )}
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-            <div className="w-full h-full rounded-lg overflow-hidden bg-transparent">
-              <div className="w-full h-full p-1 bg-black/10 rounded-lg">
-                <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
-              </div>
+            <div className="w-full h-full rounded-lg overflow-hidden">
+              <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             </div>
           ) : (
             getIcon(app.icon, { className: "w-9 h-9 text-white" })
