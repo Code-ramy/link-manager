@@ -650,6 +650,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
               <LucideIcons.Download className="mr-2 h-4 w-4" />
               Export
             </Button>
+            <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm" onClick={() => setIsManageCategoriesOpen(true)}>
+              <LucideIcons.Settings className="mr-2 h-4 w-4" />
+              Manage Categories
+            </Button>
             <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm" onClick={handleOpenAddDialog}>
               <LucideIcons.Plus className="mr-2 h-4 w-4" />
               Add App
@@ -702,18 +706,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </button>
               ))}
             </nav>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button onClick={() => setIsManageCategoriesOpen(true)} variant="ghost" size="icon" className="rounded-full bg-black/20 border border-white/10">
-                    <LucideIcons.Settings className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Manage Categories</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
 
