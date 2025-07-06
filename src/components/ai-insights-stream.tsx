@@ -705,24 +705,22 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
-        <div className="flex justify-center my-24">
-          <div className="flex items-center gap-4">
+        <div className="flex justify-center my-16">
+          <div className="flex items-center">
             <nav
               ref={filterNavRef}
-              className="relative flex items-center justify-center flex-wrap gap-2 p-2 rounded-full"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+              className="relative flex items-center flex-wrap justify-center gap-1 rounded-full border border-white/10 bg-black/20 p-1.5 backdrop-blur-sm"
             >
               <div
                 ref={markerRef}
-                className="absolute top-2 left-0 h-[calc(100%-1rem)] rounded-full bg-primary/80 backdrop-blur-sm transition-all duration-500"
-                style={{ transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)' }}
+                className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-300 ease-in-out"
               ></div>
               <button
                 data-filter="all"
                 onClick={() => handleFilterClick('all')}
                 className={cn(
-                  'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
-                  currentFilter === 'all' ? 'text-white' : 'text-gray-300 hover:text-white'
+                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors duration-300",
+                  currentFilter === "all" ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                 )}
               >
                 All
@@ -733,13 +731,13 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   data-filter={c.id}
                   onClick={() => handleFilterClick(c.id)}
                   className={cn(
-                    'relative z-10 font-headline py-2 px-4 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 shrink-0 flex items-center gap-2',
-                    currentFilter === c.id ? 'text-white' : 'text-gray-300 hover:text-white'
+                    "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors duration-300",
+                    currentFilter === c.id ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                   )}
                 >
-                  <div className="w-5 h-5 flex items-center justify-center">
+                  <div className="flex h-5 w-5 items-center justify-center">
                     {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
-                      <img src={c.icon} alt={c.name} className="w-full h-full object-contain" />
+                      <img src={c.icon} alt={c.name} className="h-full w-full object-contain" />
                     ) : (
                       getIcon(c.icon, {})
                     )}
@@ -830,5 +828,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
+
+    
 
     
