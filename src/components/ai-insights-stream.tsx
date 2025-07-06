@@ -460,48 +460,52 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
-    <div className="relative group flex flex-col items-center gap-2 text-center w-20">
-      <div className="relative w-16 h-16">
-        <a
-          href={app.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full h-full"
-          draggable="false"
-        >
-          <div
-            className={cn(
-              'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
-              isDragging
-                ? 'scale-110 shadow-2xl transform-gpu'
-                : 'scale-100 shadow-none'
-            )}
+    <div className="group flex flex-row items-center gap-2">
+      {/* Container for icon and name */}
+      <div className="flex flex-col items-center gap-2 text-center w-20">
+        <div className="w-16 h-16">
+          <a
+            href={app.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full h-full"
+            draggable="false"
           >
-            {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-              <div className={cn(
-                "w-full h-full",
-                app.clip && "rounded-lg overflow-hidden"
-              )}>
-                <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
-              </div>
-            ) : (
-              getIcon(app.icon, { className: "w-9 h-9 text-white" })
-            )}
-          </div>
-        </a>
-        <div className={cn(
-          "absolute inset-0 flex-col gap-2 bg-black/60 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden group-hover:flex",
-          app.clip && "rounded-lg"
-        )}>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
-            <LucideIcons.Pencil className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={onDelete}>
-            <LucideIcons.Trash2 className="w-4 h-4" />
-          </Button>
+            <div
+              className={cn(
+                'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
+                isDragging
+                  ? 'scale-110 shadow-2xl transform-gpu'
+                  : 'scale-100 shadow-none'
+              )}
+            >
+              {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
+                <div className={cn(
+                  "w-full h-full",
+                  app.clip && "rounded-lg overflow-hidden"
+                )}>
+                  <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                getIcon(app.icon, { className: "w-9 h-9 text-white" })
+              )}
+            </div>
+          </a>
         </div>
+        <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
       </div>
-      <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
+      
+      {/* Buttons container */}
+      <div className={cn(
+        "flex flex-col gap-2 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+      )}>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
+          <LucideIcons.Pencil className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={onDelete}>
+          <LucideIcons.Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   )
 };
