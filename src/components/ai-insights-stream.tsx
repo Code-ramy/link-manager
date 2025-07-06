@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -250,6 +249,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          className="data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
                         />
                       </FormControl>
                     </FormItem>
@@ -490,7 +490,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute -top-3 -right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
@@ -633,10 +633,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   return (
     <>
       <header className="bg-[#111217] w-full border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <Logo />
-            <h1 className="text-xl font-sans">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+          <div className="flex items-center gap-4">
+            <Logo width={40} height={40} />
+            <h1 className="text-2xl font-sans">
               <span className="font-bold text-white">Link</span>
               <span className="text-blue-400"> Manager</span>
             </h1>
@@ -788,8 +788,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 sm:justify-center gap-4">
-            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
             <Button variant="destructive" onClick={handleDeleteApp} className="w-full">Delete</Button>
+            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
