@@ -719,7 +719,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 data-filter="all"
                 onClick={() => handleFilterClick('all')}
                 className={cn(
-                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors duration-300",
+                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-colors duration-300",
                   currentFilter === "all" ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                 )}
               >
@@ -731,7 +731,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   data-filter={c.id}
                   onClick={() => handleFilterClick(c.id)}
                   className={cn(
-                    "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-medium transition-colors duration-300",
+                    "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-colors duration-300",
                     currentFilter === c.id ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                   )}
                 >
@@ -832,3 +832,4 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     
 
     
+
