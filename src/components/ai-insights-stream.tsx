@@ -165,7 +165,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 mb-4">
               <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
@@ -188,7 +188,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
               </div>
             </div>
             
-            <div className="grid gap-2">
+            <div className="grid gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -256,7 +256,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   )}
                 />
             </div>
-            <DialogFooter className="pt-2 gap-2 sm:justify-center">
+            <DialogFooter className="pt-4 gap-2 sm:justify-center">
               <DialogClose asChild><Button variant="outline" className="w-28 bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
               <Button type="submit" className="w-28 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
@@ -268,13 +268,14 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
 }
 
 function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUpdate }: { open: boolean, onOpenChange: (isOpen: boolean) => void, categories: Category[], onCategoriesUpdate: (cats: Category[]) => void }) {
-  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
+  const [localCategories, setLocalCategories] = useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      setLocalCategories(categories);
+      // Create a deep copy to avoid modifying the original state directly
+      setLocalCategories(JSON.parse(JSON.stringify(categories)));
     }
   }, [open, categories]);
 
@@ -340,13 +341,17 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     onCategoriesUpdate(localCategories);
     onOpenChange(false);
   };
+  
+  const handleCancel = () => {
+    setEditingCategory(null);
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card">
         <DialogHeader>
           <DialogTitle>إدارة الفئات</DialogTitle>
-          <DialogDescription>إضافة، تعديل، حذف، وإعادة ترتيب الفئات الخاصة بك.</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
@@ -378,7 +383,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
             <h4 className="font-bold">{editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}</h4>
-            <div className="flex gap-4">
+            <div className="flex items-end gap-4">
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem className="flex-1"><FormLabel>اسم الفئة</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -403,16 +408,16 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                   </DropdownMenu>
                 </FormItem>
               )} />
-            </div>
-            <div className="flex justify-end gap-2 mt-2">
-              <Button type="submit">{editingCategory ? 'تحديث الفئة' : 'إضافة فئة'}</Button>
-              {editingCategory && <Button variant="outline" type="button" onClick={() => { setEditingCategory(null); form.reset({ name: '', icon: 'Globe' }); }}>إلغاء التعديل</Button>}
+                 <div className="flex items-center gap-2">
+                    <Button type="submit">{editingCategory ? 'تحديث' : 'إضافة'}</Button>
+                    {editingCategory && <Button variant="ghost" type="button" onClick={() => { setEditingCategory(null); form.reset({ name: '', icon: 'Globe' }); }}>إلغاء</Button>}
+                </div>
             </div>
           </form>
         </Form>
-        <DialogFooter className="pt-4 mt-4 border-t border-white/10">
-            <DialogClose asChild><Button variant="outline">إلغاء</Button></DialogClose>
-            <Button onClick={handleSaveChanges}>حفظ التغييرات</Button>
+        <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center">
+            <Button variant="outline" onClick={handleCancel} className="w-28">إلغاء</Button>
+            <Button onClick={handleSaveChanges} className="w-28">حفظ التغييرات</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
