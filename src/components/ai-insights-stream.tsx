@@ -257,7 +257,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 />
             </div>
             <DialogFooter className="pt-4 gap-4 sm:justify-center">
-              <DialogClose asChild><Button className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button></DialogClose>
+              <DialogClose asChild><Button variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button></DialogClose>
               <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
@@ -467,7 +467,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                               <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                           )}
                       </div>
-                      <Button type="button" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
+                      <Button type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
                         <LucideIcons.Upload className="ml-2 h-4 w-4" />
                         رفع أيقونة
                       </Button>
@@ -530,7 +530,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button onClick={handleCancel} className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
+            <Button variant="outline" onClick={handleCancel} className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
             <Button onClick={handleSaveChanges} className="w-36">حفظ</Button>
         </DialogFooter>
       </DialogContent>
