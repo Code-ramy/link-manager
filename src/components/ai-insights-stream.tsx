@@ -164,7 +164,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
           <DialogTitle className="font-headline text-2xl text-white">{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 pt-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
             <div className="flex flex-col items-center gap-2">
               <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
@@ -270,50 +270,48 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
 function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { categories: Category[], onCategoriesUpdate: (cats: Category[]) => void, children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [internalCategories, setInternalCategories] = useState(categories);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      setInternalCategories(categories);
-    }
-  }, [categories, open]);
-  
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: 'Globe' },
   });
+  const dndId = useId();
 
-  const iconList = Object.keys(LucideIcons).filter(k => k.match(/^[A-Z]/));
+  const iconList = Object.keys(LucideIcons).filter(k => k.match(/^[A-Z]/) && k !== 'Icon' && !k.endsWith('Provider'));
 
   const handleSave = (data: z.infer<typeof categorySchema>) => {
     let updatedCategories;
     if (editingCategory) {
-      updatedCategories = internalCategories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
+      updatedCategories = categories.map(c => c.id === editingCategory.id ? { ...c, ...data } : c);
     } else {
-      updatedCategories = [...internalCategories, { ...data, id: crypto.randomUUID() }];
+      updatedCategories = [...categories, { ...data, id: crypto.randomUUID() }];
     }
-    setInternalCategories(updatedCategories);
     onCategoriesUpdate(updatedCategories);
     setEditingCategory(null);
     form.reset({ name: '', icon: 'Globe' });
   };
 
   const handleDelete = (id: string) => {
-    const updatedCategories = internalCategories.filter(c => c.id !== id);
-    setInternalCategories(updatedCategories);
+    const updatedCategories = categories.filter(c => c.id !== id);
     onCategoriesUpdate(updatedCategories);
+  }
+  
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+  
+  const handleDragCancel = () => {
+    setActiveId(null);
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setInternalCategories((items) => {
-        const oldIndex = items.findIndex((c) => c.id === active.id);
-        const newIndex = items.findIndex((c) => c.id === over.id);
-        const newOrder = arrayMove(items, oldIndex, newIndex);
-        onCategoriesUpdate(newOrder);
-        return newOrder;
-      });
+      const oldIndex = categories.findIndex((c) => c.id === active.id);
+      const newIndex = categories.findIndex((c) => c.id === over.id);
+      onCategoriesUpdate(arrayMove(categories, oldIndex, newIndex));
     }
   };
 
@@ -322,6 +320,14 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
       distance: 5,
     },
   }));
+  
+  useEffect(() => {
+    if (editingCategory) {
+      form.reset(editingCategory);
+    } else {
+      form.reset({ name: '', icon: 'Globe' });
+    }
+  }, [editingCategory, form]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -333,18 +339,18 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
         </DialogHeader>
 
         <div className="max-h-[300px] overflow-y-auto my-4 pr-2">
-          <DndContext sensors={sensors} collisionDetector={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={internalCategories.map(c => c.id)} strategy={rectSortingStrategy}>
-              {internalCategories.map(c => (
-                <SortableItem key={c.id} id={c.id} isDragging={false}>
+          <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
+            <SortableContext items={categories.map(c => c.id)} strategy={rectSortingStrategy}>
+              {categories.map(c => (
+                <SortableItem key={c.id} id={c.id} isDragging={activeId === c.id}>
                   <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
                     <div className="flex items-center gap-3">
                       <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
-                      {getIcon(c.icon)}
+                      {getIcon(c.icon, {})}
                       <span>{c.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingCategory(c); form.reset(c); }}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategory(c)}>
                         <LucideIcons.Pencil className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
