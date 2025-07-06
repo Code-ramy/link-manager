@@ -163,18 +163,18 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] modal-card border-white/20">
+      <DialogContent className="sm:max-w-sm modal-card border-white/20">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
             <div className="flex flex-col items-center gap-4 mb-2">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                     {iconPreview ? (
                         <img src={iconPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
-                        <LucideIcons.ImageIcon className="w-8 h-8 text-muted-foreground" />
+                        <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                     )}
                 </div>
                 <div className="flex flex-col items-center gap-2">
@@ -254,8 +254,8 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 />
             </div>
             <DialogFooter className="pt-4 mt-4 border-t border-white/10 gap-4 sm:justify-center">
-              <Button asChild variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>Cancel</DialogClose></Button>
-              <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">Save</Button>
+              <Button asChild variant="outline" className="w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>Cancel</DialogClose></Button>
+              <Button type="submit" className="w-28 bg-primary hover:bg-primary/90 text-white">Save</Button>
             </DialogFooter>
           </form>
         </Form>
