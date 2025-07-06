@@ -633,10 +633,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   return (
     <>
       <header className="bg-[#111217] w-full border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-32">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-24">
           <div className="flex items-center gap-4">
-            <Logo width={64} height={64} />
-            <h1 className="text-5xl font-sans relative -top-0.5">
+            <Logo width={56} height={56} />
+            <h1 className="text-4xl font-sans relative -top-0.5">
               <span className="font-bold text-white">Link</span>
               <span className="text-blue-400"> Manager</span>
             </h1>
