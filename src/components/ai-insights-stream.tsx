@@ -573,10 +573,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     const appExists = apps.some(a => a.id === appData.id);
     if (appExists) {
       setApps(apps.map(a => a.id === appData.id ? appData : a));
-      toast({ title: "تم التحديث بنجاح!" });
+      toast({ title: "تم التحديث بنجاح!", variant: "success" });
     } else {
       setApps([...apps, appData]);
-      toast({ title: "تمت الإضافة بنجاح!" });
+      toast({ title: "تمت الإضافة بنجاح!", variant: "success" });
     }
   };
   
