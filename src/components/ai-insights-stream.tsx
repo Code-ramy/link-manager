@@ -23,6 +23,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const appSchema = z.object({
   name: z.string().min(1, "اسم التطبيق مطلوب"),
@@ -384,7 +386,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+const AppIcon = ({ app, onEdit, onDelete, isDragging, clipCorners }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, clipCorners: boolean }) => {
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
       <a
@@ -403,7 +405,10 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
           )}
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-            <div className="w-full h-full rounded-lg overflow-hidden">
+            <div className={cn(
+              "w-full h-full",
+              clipCorners && "rounded-lg overflow-hidden"
+            )}>
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             </div>
           ) : (
@@ -432,6 +437,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
 export function AiInsightsStream({ initialApps, initialCategories }: { initialApps: WebApp[], initialCategories: Category[] }) {
   const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
   const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
+  const [clipCorners, setClipCorners] = useLocalStorage<boolean>('clip-corners', true);
   const [currentFilter, setCurrentFilter] = useState('all');
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -547,7 +553,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </header>
 
         <div className="flex justify-center mb-10">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <nav
               ref={filterNavRef}
               className="relative flex items-center justify-center flex-wrap gap-2 p-2 rounded-full"
@@ -597,6 +603,14 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </Tooltip>
               </TooltipProvider>
             </ManageCategoriesDialog>
+            <div className="flex items-center gap-2 p-1.5 px-3 rounded-full bg-black/20 border border-white/10">
+                <Label htmlFor="clip-corners-switch" className="text-sm cursor-pointer select-none">قص الحواف</Label>
+                <Switch
+                    id="clip-corners-switch"
+                    checked={clipCorners}
+                    onCheckedChange={setClipCorners}
+                />
+            </div>
           </div>
         </div>
 
@@ -625,6 +639,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                         onEdit={() => handleOpenEditDialog(app)}
                         onDelete={() => setAppToDelete(app)}
                         isDragging={activeId === app.id}
+                        clipCorners={clipCorners}
                       />
                     </SortableItem>
                   ))}
