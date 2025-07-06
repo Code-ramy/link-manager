@@ -14,6 +14,8 @@ import { useForm } from "react-hook-form";
 import { useDebounce } from 'use-debounce';
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { suggestCategoryIcons } from '@/ai/flows/suggest-category-icons';
+
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -25,6 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const appSchema = z.object({
   name: z.string().min(1, "اسم التطبيق مطلوب"),
@@ -69,7 +72,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 100,
+      duration: 150,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
@@ -165,27 +168,27 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
-            <div className="flex flex-col items-center gap-2 mb-2">
-              <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
-                {iconPreview ? (
-                    <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
-                ) : (
-                    <LucideIcons.ImageIcon className="w-12 h-12 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20">
-                  <LucideIcons.Upload className="ml-2 h-4 w-4" />
-                  رفع صورة
-                </Button>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  ref={fileInputRef}
-                />
-              </div>
+            <div className="flex flex-col items-center gap-4 mb-2">
+                <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+                    {iconPreview ? (
+                        <img src={iconPreview} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                        <LucideIcons.ImageIcon className="w-12 h-12 text-muted-foreground" />
+                    )}
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20 text-sm h-9">
+                        <LucideIcons.Upload className="ml-2 h-4 w-4" />
+                        رفع صورة
+                    </Button>
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        ref={fileInputRef}
+                    />
+                </div>
             </div>
             
             <div className="grid gap-4">
@@ -256,9 +259,9 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   )}
                 />
             </div>
-            <DialogFooter className="pt-4 gap-2 sm:justify-center">
-              <DialogClose asChild><Button variant="outline" className="w-28 bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
-              <Button type="submit" className="w-28 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
+            <DialogFooter className="pt-4 gap-4 sm:justify-center">
+              <DialogClose asChild><Button variant="outline" className="w-32 bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
+              <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -275,6 +278,9 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
 
+  const [suggestedIcons, setSuggestedIcons] = useState<string[]>([]);
+  const [isSuggestingIcons, setIsSuggestingIcons] = useState(false);
+
   useEffect(() => {
     if (open) {
       setLocalCategories(JSON.parse(JSON.stringify(categories)));
@@ -283,8 +289,32 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', icon: 'data:,' },
+    defaultValues: { name: '', icon: '' },
   });
+
+  const categoryNameValue = form.watch('name');
+  const [debouncedCategoryName] = useDebounce(categoryNameValue, 500);
+
+  useEffect(() => {
+    async function fetchSuggestions() {
+      if (debouncedCategoryName && debouncedCategoryName.trim().length > 2) {
+        setIsSuggestingIcons(true);
+        setSuggestedIcons([]);
+        try {
+          const result = await suggestCategoryIcons({ categoryName: debouncedCategoryName });
+          setSuggestedIcons(result.icons);
+        } catch (error) {
+          console.error("Error suggesting icons:", error);
+          toast({ variant: 'destructive', title: 'فشل اقتراح الأيقونات' });
+        } finally {
+          setIsSuggestingIcons(false);
+        }
+      } else {
+        setSuggestedIcons([]);
+      }
+    }
+    fetchSuggestions();
+  }, [debouncedCategoryName]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -306,14 +336,14 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
       setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
     setEditingCategory(null);
-    form.reset({ name: '', icon: 'data:,' });
+    form.reset({ name: '', icon: '' });
     setIconPreview('');
   };
 
   const handleDeleteCategory = (id: string) => {
     if (editingCategory?.id === id) {
       setEditingCategory(null);
-      form.reset({ name: '', icon: 'data:,' });
+      form.reset({ name: '', icon: '' });
       setIconPreview('');
     }
     setLocalCategories(localCategories.filter(c => c.id !== id));
@@ -348,7 +378,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
       form.reset(editingCategory);
       setIconPreview(editingCategory.icon);
     } else {
-      form.reset({ name: '', icon: 'data:,' });
+      form.reset({ name: '', icon: '' });
       setIconPreview('');
     }
   }, [editingCategory, form]);
@@ -366,7 +396,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const handleCancelEdit = () => {
     setEditingCategory(null);
     setIconPreview('');
-    form.reset({ name: '', icon: 'data:,' });
+    form.reset({ name: '', icon: '' });
   }
 
   return (
@@ -420,24 +450,63 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                   </FormItem>
                 )} />
 
-                <FormItem>
-                  <FormLabel>الأيقونة</FormLabel>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
-                        {iconPreview && iconPreview !== 'data:,' ? (
-                            <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
-                        ) : (
-                            <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
-                        )}
+                <div className="space-y-4">
+                  <FormItem>
+                    <FormLabel>الأيقونة</FormLabel>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+                          {iconPreview && iconPreview.startsWith('data:image') ? (
+                              <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
+                          ) : iconPreview ? (
+                              getIcon(iconPreview, { className: 'w-7 h-7' })
+                          ) : (
+                              <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
+                          )}
+                      </div>
+                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                        <LucideIcons.Upload className="ml-2 h-4 w-4" />
+                        رفع أيقونة
+                      </Button>
+                      <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
+                      <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
-                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                      <LucideIcons.Upload className="ml-2 h-4 w-4" />
-                      رفع أيقونة
-                    </Button>
-                    <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
-                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  </div>
-                </FormItem>
+                  </FormItem>
+                  
+                  {(isSuggestingIcons || suggestedIcons.length > 0) && (
+                    <div className="p-3 rounded-md border border-dashed border-white/20">
+                      <h5 className="text-xs text-muted-foreground mb-3">أيقونات مقترحة</h5>
+                      <AnimatePresence>
+                        {isSuggestingIcons ? (
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-2">
+                            <Skeleton className="w-9 h-9 rounded-md" />
+                            <Skeleton className="w-9 h-9 rounded-md" />
+                            <Skeleton className="w-9 h-9 rounded-md" />
+                            <Skeleton className="w-9 h-9 rounded-md" />
+                            <Skeleton className="w-9 h-9 rounded-md" />
+                          </motion.div>
+                        ) : (
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-wrap gap-2">
+                            {suggestedIcons.map(iconName => (
+                              <Button
+                                key={iconName}
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9"
+                                onClick={() => {
+                                  form.setValue('icon', iconName);
+                                  setIconPreview(iconName);
+                                }}
+                              >
+                                {getIcon(iconName, { className: 'w-5 h-5' })}
+                              </Button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </div>
             </div>
             
             <div className="flex justify-end items-center gap-2 pt-2">
@@ -447,8 +516,8 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button variant="outline" onClick={handleCancel} className="w-32">إلغاء</Button>
-            <Button onClick={handleSaveChanges} className="w-32">حفظ</Button>
+            <Button variant="outline" onClick={handleCancel} className="w-36">إلغاء</Button>
+            <Button onClick={handleSaveChanges} className="w-36">حفظ</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
