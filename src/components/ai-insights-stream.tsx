@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@d
 import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as LucideIcons from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { useDebounce } from 'use-debounce';
 import { z } from "zod";
@@ -69,7 +69,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 350,
+      duration: 500,
       easing: 'cubic-bezier(0.19, 1, 0.22, 1)',
     },
   });
@@ -243,7 +243,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   control={form.control}
                   name="clip"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input bg-transparent p-3 shadow-sm mt-4">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input p-3 shadow-sm mt-2">
                       <div className="space-y-0.5">
                         <FormLabel>قص الحواف</FormLabel>
                         <FormDescription className="text-xs text-muted-foreground/80">
@@ -464,6 +464,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
+  const dndId = useId();
 
   const filteredApps = apps.filter(app => {
     if (currentFilter === 'all') return true;
@@ -623,6 +624,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
         <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
           <DndContext 
+            id={dndId}
             sensors={sensors} 
             collisionDetector={closestCenter} 
             onDragStart={handleAppDragStart}
