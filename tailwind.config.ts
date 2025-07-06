@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"IBM Plex Sans Arabic"', 'sans-serif'],
-        headline: ['"Changa"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
+        headline: ['"Inter"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

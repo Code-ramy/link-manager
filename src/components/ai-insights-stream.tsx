@@ -29,16 +29,16 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const appSchema = z.object({
-  name: z.string().min(1, "اسم التطبيق مطلوب"),
-  url: z.string().url("رابط غير صالح"),
-  icon: z.string().min(1, "الأيقونة مطلوبة"),
+  name: z.string().min(1, "App name is required"),
+  url: z.string().url("Invalid URL"),
+  icon: z.string().min(1, "Icon is required"),
   categoryId: z.string(),
   clip: z.boolean().optional(),
 });
 
 const categorySchema = z.object({
-  name: z.string().min(1, "اسم الفئة مطلوب"),
-  icon: z.string().min(1, "الأيقونة مطلوبة"),
+  name: z.string().min(1, "Category name is required"),
+  icon: z.string().min(1, "Icon is required"),
 });
 
 const getIcon = (name: string, props: any = {}) => {
@@ -163,7 +163,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] modal-card border-white/20">
         <DialogHeader>
-          <DialogTitle className="font-headline text-2xl text-white">{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
+          <DialogTitle className="font-headline text-2xl text-white">{app ? 'Edit App' : 'Add New App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
@@ -177,8 +177,8 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 </div>
                 <div className="flex flex-col items-center gap-2">
                     <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20 text-sm h-9">
-                        <LucideIcons.Upload className="ml-2 h-4 w-4" />
-                        رفع صورة
+                        <LucideIcons.Upload className="mr-2 h-4 w-4" />
+                        Upload Image
                     </Button>
                     <Input
                         type="file"
@@ -196,9 +196,9 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                        <FormLabel>اسم التطبيق</FormLabel>
+                        <FormLabel>App Name</FormLabel>
                         <FormControl>
-                            <Input placeholder="مثال: Google" {...field} />
+                            <Input placeholder="e.g., Google" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -209,7 +209,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   name="url"
                   render={({ field }) => (
                     <FormItem>
-                        <FormLabel>الرابط</FormLabel>
+                        <FormLabel>URL</FormLabel>
                         <FormControl>
                             <Input placeholder="https://google.com" {...field} />
                         </FormControl>
@@ -222,11 +222,11 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   name="categoryId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>الفئة</FormLabel>
+                      <FormLabel>Category</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="اختر فئة" />
+                            <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -243,7 +243,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
                       <div className="space-y-0.5">
-                        <FormLabel>قص الحواف</FormLabel>
+                        <FormLabel>Clip Edges</FormLabel>
                       </div>
                       <FormControl>
                         <Switch
@@ -256,8 +256,8 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 />
             </div>
             <DialogFooter className="pt-4 gap-4 sm:justify-center">
-              <Button asChild variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>إلغاء</DialogClose></Button>
-              <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
+              <Button asChild variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>Cancel</DialogClose></Button>
+              <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">Save</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -372,7 +372,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>إدارة الفئات</DialogTitle>
+          <DialogTitle>Manage Categories</DialogTitle>
         </DialogHeader>
 
         <div className="max-h-[300px] overflow-y-auto overflow-x-hidden my-4 -mr-4 pr-4">
@@ -409,11 +409,11 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
-            <h4 className="font-bold">{editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}</h4>
+            <h4 className="font-bold">{editingCategory ? 'Edit Category' : 'Add New Category'}</h4>
             <div className="flex flex-col gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>اسم الفئة</FormLabel>
+                    <FormLabel>Category Name</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -421,7 +421,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
                 <div className="space-y-4">
                   <FormItem>
-                    <FormLabel>الأيقونة</FormLabel>
+                    <FormLabel>Icon</FormLabel>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                           {iconPreview && iconPreview.startsWith('data:image') ? (
@@ -433,8 +433,8 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                           )}
                       </div>
                       <Button type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
-                        <LucideIcons.Upload className="ml-2 h-4 w-4" />
-                        رفع أيقونة
+                        <LucideIcons.Upload className="mr-2 h-4 w-4" />
+                        Upload Icon
                       </Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -444,14 +444,14 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
             </div>
             
             <div className="flex justify-end items-center gap-2 pt-2">
-              {editingCategory && <Button variant="ghost" type="button" onClick={handleCancelEdit}>إلغاء التعديل</Button>}
-              <Button type="submit">{editingCategory ? 'تحديث الفئة' : 'إضافة فئة'}</Button>
+              {editingCategory && <Button variant="ghost" type="button" onClick={handleCancelEdit}>Cancel Edit</Button>}
+              <Button type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
             </div>
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
-            <Button onClick={handleSaveChanges} className="w-36">حفظ</Button>
+            <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
+            <Button onClick={handleSaveChanges} className="w-36">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -501,13 +501,13 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
             align="end" 
             sideOffset={8}
           >
-            <DropdownMenuItem onSelect={onEdit} className="focus:bg-white/10 justify-end gap-2">
+            <DropdownMenuItem onSelect={onEdit} className="focus:bg-white/10 justify-start gap-2">
               <LucideIcons.Pencil />
-              <span>تعديل</span>
+              <span>Edit</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 justify-end gap-2">
+            <DropdownMenuItem onSelect={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 justify-start gap-2">
               <LucideIcons.Trash2 />
-              <span>حذف</span>
+              <span>Delete</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -573,10 +573,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     const appExists = apps.some(a => a.id === appData.id);
     if (appExists) {
       setApps(apps.map(a => a.id === appData.id ? appData : a));
-      toast({ title: "تم التحديث بنجاح!", variant: "success" });
+      toast({ title: "Updated successfully!", variant: "success" });
     } else {
       setApps([...apps, appData]);
-      toast({ title: "تمت الإضافة بنجاح!", variant: "success" });
+      toast({ title: "Added successfully!", variant: "success" });
     }
   };
   
@@ -593,7 +593,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const handleDeleteApp = () => {
     if (appToDelete) {
       setApps(apps.filter(a => a.id !== appToDelete.id));
-      toast({ title: "تم الحذف بنجاح!", variant: "destructive" });
+      toast({ title: "Deleted successfully!", variant: "destructive" });
       setAppToDelete(null);
     }
   };
@@ -632,11 +632,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
         <header className="flex justify-between items-center text-center mb-8 mt-4">
           <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-            ساحة عرض تطبيقات الويب
+            Web App Launcher
           </h1>
           <Button size="lg" className="rounded-md bg-primary hover:bg-primary/90 text-white" onClick={handleOpenAddDialog}>
-            <LucideIcons.Plus className="w-5 h-5 ml-2" />
-            إضافة تطبيق
+            <LucideIcons.Plus className="w-5 h-5 mr-2" />
+            Add App
           </Button>
         </header>
 
@@ -660,7 +660,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   currentFilter === 'all' ? 'text-white' : 'text-gray-300 hover:text-white'
                 )}
               >
-                الكل
+                All
               </button>
               {categories.map(c => (
                 <button
@@ -691,7 +691,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>إدارة الفئات</p>
+                  <p>Manage Categories</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -763,14 +763,14 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <Dialog open={!!appToDelete} onOpenChange={(isOpen) => !isOpen && setAppToDelete(null)}>
         <DialogContent className="modal-card">
           <DialogHeader>
-            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              هل أنت متأكد من أنك تريد حذف "{appToDelete?.name}"؟ لا يمكن التراجع عن هذا الإجراء.
+              Are you sure you want to delete "{appToDelete?.name}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 sm:justify-center gap-4">
-            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
-            <Button variant="destructive" onClick={handleDeleteApp} className="w-32">حذف</Button>
+            <Button variant="destructive" onClick={handleDeleteApp} className="w-32">Delete</Button>
+            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
