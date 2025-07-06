@@ -143,6 +143,54 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
     }
   }, [urlToFetch, app, form]);
 
+  useEffect(() => {
+    const fetchTitle = async () => {
+      // Only fetch if the URL is valid and the name field is empty
+      if (urlToFetch && z.string().url().safeParse(urlToFetch).success && !form.getValues('name')) {
+        try {
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlToFetch)}`;
+          const response = await fetch(proxyUrl);
+          if (!response.ok) throw new Error('Failed to fetch via proxy');
+          
+          const data = await response.json();
+          const html = data.contents;
+          if (!html) throw new Error('No content from proxy');
+
+          const match = html.match(/<title>([^<]*)<\/title>/i);
+          let title = '';
+          if (match && match[1]) {
+            // Basic sanitization of the title
+            title = match[1].trim();
+          } else {
+            // Fallback to a formatted hostname if title not found
+            const hostname = new URL(urlToFetch).hostname.replace(/^www\./, '');
+            const mainDomain = hostname.split('.')[0];
+            title = mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+          }
+          
+          if (title) {
+            form.setValue('name', title, { shouldValidate: true });
+          }
+        } catch (error) {
+          console.error("Failed to fetch site title:", error);
+          // Fallback in case of any error during fetch
+          try {
+            const hostname = new URL(urlToFetch).hostname.replace(/^www\./, '');
+            const mainDomain = hostname.split('.')[0];
+            const fallbackTitle = mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+            if (fallbackTitle) {
+              form.setValue('name', fallbackTitle, { shouldValidate: true });
+            }
+          } catch(e) {
+            // Silently fail if URL is invalid at this point
+          }
+        }
+      }
+    };
+
+    fetchTitle();
+  }, [urlToFetch, form]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
