@@ -373,7 +373,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           <DialogTitle>Manage Categories</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[300px] overflow-y-auto my-4">
+        <div className="max-h-[300px] overflow-y-auto my-4 pr-4">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
@@ -430,11 +430,11 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                               <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                           )}
                       </div>
-                      <Button type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
+                      <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
                         <LucideIcons.Upload className="mr-2 h-4 w-4" />
                         Upload Icon
                       </Button>
-                      <Button type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
+                      <Button size="sm" type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
@@ -443,13 +443,13 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
             </div>
             
             <div className="flex justify-end items-center gap-2 pt-2">
-              {editingCategory && <Button variant="ghost" type="button" onClick={handleCancelEdit}>Cancel Edit</Button>}
+              {editingCategory && <Button size="sm" variant="ghost" type="button" onClick={handleCancelEdit}>Cancel Edit</Button>}
             </div>
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
-            <Button onClick={handleSaveChanges} className="w-36">Save</Button>
+            <Button size="sm" onClick={handleCancel} variant="outline" className="w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
+            <Button size="sm" onClick={handleSaveChanges} className="w-28">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
