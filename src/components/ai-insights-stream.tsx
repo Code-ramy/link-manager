@@ -437,6 +437,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                         <LucideIcons.Upload className="mr-2 h-4 w-4" />
                         Upload Icon
                       </Button>
+                      <Button type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
@@ -446,7 +447,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
             
             <div className="flex justify-end items-center gap-2 pt-2">
               {editingCategory && <Button variant="ghost" type="button" onClick={handleCancelEdit}>Cancel Edit</Button>}
-              <Button type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
             </div>
           </form>
         </Form>
@@ -796,3 +796,5 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
+
+    
