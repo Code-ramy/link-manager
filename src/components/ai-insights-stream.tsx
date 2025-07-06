@@ -460,7 +460,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
-    <div className="group flex flex-row items-start gap-1">
+    <div className="group flex flex-row items-start gap-0">
       {/* Container for icon and name */}
       <div className="flex flex-col items-center gap-2 text-center w-20">
         <div className="w-16 h-16">
@@ -497,7 +497,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       
       {/* Buttons container */}
       <div className={cn(
-        "flex flex-col gap-2 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        "ml-1 flex flex-col gap-1 items-center opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
           <LucideIcons.Pencil className="w-4 h-4" />
