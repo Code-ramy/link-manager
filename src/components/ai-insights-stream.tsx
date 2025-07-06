@@ -497,7 +497,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       
       {/* Buttons container */}
       <div className={cn(
-        "ml-1 flex flex-col gap-1 items-center opacity-0 group-hover:opacity-100 transition-opacity"
+        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
           <LucideIcons.Pencil className="w-4 h-4" />
