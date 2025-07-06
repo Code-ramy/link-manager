@@ -295,26 +295,31 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const categoryNameValue = form.watch('name');
   const [debouncedCategoryName] = useDebounce(categoryNameValue, 500);
 
-  useEffect(() => {
-    async function fetchSuggestions() {
-      if (debouncedCategoryName && debouncedCategoryName.trim().length > 2) {
-        setIsSuggestingIcons(true);
-        setSuggestedIcons([]);
-        try {
-          const result = await suggestCategoryIcons({ categoryName: debouncedCategoryName });
-          setSuggestedIcons(result.icons);
-        } catch (error) {
-          console.error("Error suggesting icons:", error);
-          toast({ variant: 'destructive', title: 'فشل اقتراح الأيقونات' });
-        } finally {
-          setIsSuggestingIcons(false);
-        }
-      } else {
-        setSuggestedIcons([]);
-      }
+  const fetchSuggestions = useCallback(async (categoryName: string) => {
+    if (!categoryName || categoryName.trim().length <= 2) {
+      setSuggestedIcons([]);
+      return;
     }
-    fetchSuggestions();
-  }, [debouncedCategoryName]);
+    setIsSuggestingIcons(true);
+    try {
+      const result = await suggestCategoryIcons({ categoryName });
+      setSuggestedIcons(result.icons);
+    } catch (error) {
+      console.error("Error suggesting icons:", error);
+      toast({ variant: 'destructive', title: 'فشل اقتراح الأيقونات' });
+    } finally {
+      setIsSuggestingIcons(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSuggestions(debouncedCategoryName);
+  }, [debouncedCategoryName, fetchSuggestions]);
+
+  const handleRefreshSuggestions = () => {
+    const categoryName = form.getValues('name');
+    fetchSuggestions(categoryName);
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -338,6 +343,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
+    setSuggestedIcons([]);
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -397,6 +403,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     setEditingCategory(null);
     setIconPreview('');
     form.reset({ name: '', icon: '' });
+    setSuggestedIcons([]);
   }
 
   return (
@@ -474,15 +481,25 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                   
                   {(isSuggestingIcons || suggestedIcons.length > 0) && (
                     <div className="p-3 rounded-md border border-dashed border-white/20">
-                      <h5 className="text-xs text-muted-foreground mb-3">أيقونات مقترحة</h5>
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="text-xs text-muted-foreground">أيقونات مقترحة</h5>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={handleRefreshSuggestions}
+                          disabled={isSuggestingIcons || !form.getValues('name')}
+                        >
+                          <LucideIcons.RefreshCw className={cn("w-4 h-4", isSuggestingIcons && "animate-spin")} />
+                        </Button>
+                      </div>
                       <AnimatePresence>
                         {isSuggestingIcons ? (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex gap-2">
-                            <Skeleton className="w-9 h-9 rounded-md" />
-                            <Skeleton className="w-9 h-9 rounded-md" />
-                            <Skeleton className="w-9 h-9 rounded-md" />
-                            <Skeleton className="w-9 h-9 rounded-md" />
-                            <Skeleton className="w-9 h-9 rounded-md" />
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-wrap gap-2">
+                             {Array.from({ length: 8 }).map((_, i) => (
+                                <Skeleton key={i} className="w-9 h-9 rounded-md" />
+                            ))}
                           </motion.div>
                         ) : (
                           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-wrap gap-2">
