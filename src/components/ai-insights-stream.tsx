@@ -306,10 +306,10 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over?.id) {
+    if (over && active.id !== over.id) {
       setInternalCategories((items) => {
         const oldIndex = items.findIndex((c) => c.id === active.id);
-        const newIndex = items.findIndex((c) => c.id === over!.id);
+        const newIndex = items.findIndex((c) => c.id === over.id);
         const newOrder = arrayMove(items, oldIndex, newIndex);
         onCategoriesUpdate(newOrder);
         return newOrder;
