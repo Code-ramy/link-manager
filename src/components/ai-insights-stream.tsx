@@ -242,7 +242,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   control={form.control}
                   name="clip"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input p-3 shadow-sm mt-1">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1">
                       <div className="space-y-0.5">
                         <FormLabel>قص الحواف</FormLabel>
                       </div>
@@ -257,7 +257,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 />
             </div>
             <DialogFooter className="pt-4 gap-4 sm:justify-center">
-              <DialogClose asChild><Button variant="outline" className="w-32 bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
+              <DialogClose asChild><Button className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button></DialogClose>
               <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
@@ -467,7 +467,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                               <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                           )}
                       </div>
-                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      <Button type="button" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
                         <LucideIcons.Upload className="ml-2 h-4 w-4" />
                         رفع أيقونة
                       </Button>
@@ -530,7 +530,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button variant="outline" onClick={handleCancel} className="w-36">إلغاء</Button>
+            <Button onClick={handleCancel} className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
             <Button onClick={handleSaveChanges} className="w-36">حفظ</Button>
         </DialogFooter>
       </DialogContent>
