@@ -76,9 +76,11 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? undefined : transition,
+    zIndex: isDragging ? 10 : 'auto',
+    position: 'relative',
   };
 
 
@@ -497,7 +499,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       
       {/* Buttons container */}
       <div className={cn(
-        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-1 -ml-3"
+        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-2 -ml-4"
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
           <LucideIcons.Pencil className="w-4 h-4" />
