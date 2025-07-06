@@ -360,12 +360,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     onOpenChange(false);
   }
 
-  const handleCancelEdit = () => {
-    setEditingCategory(null);
-    setIconPreview('');
-    form.reset({ name: '', icon: '' });
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
@@ -440,10 +434,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                     </div>
                   </FormItem>
                 </div>
-            </div>
-            
-            <div className="flex justify-end items-center gap-2 pt-2">
-              {editingCategory && <Button size="sm" variant="ghost" type="button" onClick={handleCancelEdit}>Cancel Edit</Button>}
             </div>
           </form>
         </Form>
@@ -840,3 +830,5 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
+
+    
