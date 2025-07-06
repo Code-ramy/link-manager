@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Web App Launcher',
+  title: 'Link Manager',
   description: 'Your personal web app launcher.',
 };
 

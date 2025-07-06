@@ -17,16 +17,17 @@ import { motion, AnimatePresence } from "framer-motion";
 
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Logo } from '@/components/logo';
 
 const appSchema = z.object({
   name: z.string().min(1, "App name is required"),
@@ -370,7 +371,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-card sm:max-w-sm">
+      <DialogContent className="modal-card sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Manage Categories</DialogTitle>
         </DialogHeader>
@@ -451,7 +452,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
             <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
-            <Button onClick={handleSaveChanges} className="w-36">Save</Button>
+            <Button onClick={handleSaveChanges} className="w-36">Save Changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -489,7 +490,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute -top-2 -right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -top-3 -right-8 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
@@ -537,6 +538,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   useEffect(() => {
     setHasMounted(true);
   }, []);
+  
+  const { toast } = useToast();
 
   const filteredApps = apps.filter(app => {
     if (currentFilter === 'all') return true;
@@ -629,18 +632,34 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   return (
     <>
+      <header className="bg-[#111217] w-full border-b border-white/10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <Logo />
+            <h1 className="text-xl font-sans">
+              <span className="font-bold text-white">Link</span>
+              <span className="text-blue-400"> Manager</span>
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium">
+              <LucideIcons.Upload className="mr-2 h-4 w-4" />
+              Import
+            </Button>
+            <Button variant="outline" className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium">
+              <LucideIcons.Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold text-sm" onClick={handleOpenAddDialog}>
+              <LucideIcons.Plus className="mr-2 h-4 w-4" />
+              Add App
+            </Button>
+          </div>
+        </div>
+      </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header className="flex justify-between items-center text-center mb-8 mt-4">
-          <h1 className="font-headline text-3xl sm:text-4xl font-bold text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-            Web App Launcher
-          </h1>
-          <Button size="lg" className="rounded-md bg-primary hover:bg-primary/90 text-white" onClick={handleOpenAddDialog}>
-            <LucideIcons.Plus className="w-5 h-5 mr-2" />
-            Add App
-          </Button>
-        </header>
 
-        <div className="flex justify-center mb-10">
+        <div className="flex justify-center my-10">
           <div className="flex items-center gap-4">
             <nav
               ref={filterNavRef}
@@ -761,7 +780,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       />
 
       <Dialog open={!!appToDelete} onOpenChange={(isOpen) => !isOpen && setAppToDelete(null)}>
-        <DialogContent className="modal-card">
+        <DialogContent className="modal-card sm:max-w-xs">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -769,8 +788,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 sm:justify-center gap-4">
-            <Button variant="destructive" onClick={handleDeleteApp} className="w-32">Delete</Button>
-            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
+            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteApp} className="w-full">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
