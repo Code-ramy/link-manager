@@ -70,7 +70,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     id,
     transition: {
       duration: 350,
-      easing: 'cubic-bezier(0.83, 0, 0.17, 1)',
+      easing: 'cubic-bezier(0.19, 1, 0.22, 1)',
     },
   });
 
@@ -162,9 +162,6 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
       <DialogContent className="sm:max-w-[425px] modal-card border-white/20">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl text-white">{app ? 'تعديل التطبيق' : 'إضافة تطبيق جديد'}</DialogTitle>
-          <DialogDescription>
-            املأ التفاصيل أدناه. سيتم جلب الأيقونة تلقائيًا عند إدخال رابط صالح.
-          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 pt-2">
