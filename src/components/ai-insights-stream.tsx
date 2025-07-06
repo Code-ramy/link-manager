@@ -489,7 +489,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
@@ -502,12 +502,12 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
             sideOffset={8}
           >
             <DropdownMenuItem onSelect={onEdit} className="focus:bg-white/10 justify-end">
-              <span>تعديل</span>
               <LucideIcons.Pencil />
+              <span>تعديل</span>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 justify-end">
-              <span>حذف</span>
               <LucideIcons.Trash2 />
+              <span>حذف</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -768,9 +768,9 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
               هل أنت متأكد من أنك تريد حذف "{appToDelete?.name}"؟ لا يمكن التراجع عن هذا الإجراء.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="destructive" onClick={handleDeleteApp}>حذف</Button>
-            <Button variant="outline" onClick={() => setAppToDelete(null)}>إلغاء</Button>
+          <DialogFooter className="pt-4 sm:justify-center gap-4">
+            <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
+            <Button variant="destructive" onClick={handleDeleteApp} className="w-32">حذف</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
