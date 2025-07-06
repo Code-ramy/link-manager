@@ -165,16 +165,16 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] modal-card border-white/20">
         <DialogHeader>
-          <DialogTitle className="font-headline text-2xl text-white">{app ? 'Edit App' : 'Add New App'}</DialogTitle>
+          <DialogTitle className="font-headline text-2xl text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
             <div className="flex flex-col items-center gap-4 mb-2">
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                     {iconPreview ? (
                         <img src={iconPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
-                        <LucideIcons.ImageIcon className="w-12 h-12 text-muted-foreground" />
+                        <LucideIcons.ImageIcon className="w-10 h-10 text-muted-foreground" />
                     )}
                 </div>
                 <div className="flex flex-col items-center gap-2">
@@ -244,9 +244,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   name="clip"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
-                      <div className="space-y-0.5">
-                        <FormLabel>Clip Edges</FormLabel>
-                      </div>
+                      <FormLabel>Clip Edges</FormLabel>
                       <FormControl>
                         <Switch
                           checked={field.value}
