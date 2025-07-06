@@ -709,7 +709,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           <div className="flex items-center">
             <nav
               ref={filterNavRef}
-              className="relative flex items-center flex-wrap justify-center gap-1 rounded-full border border-white/10 bg-black/20 p-1.5 backdrop-blur-sm"
+              className="glass-bar relative flex items-center flex-wrap justify-center gap-1 rounded-full p-1.5"
             >
               <div
                 ref={markerRef}
