@@ -415,8 +415,8 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
                 <SortableItem key={c.id} id={c.id} isDragging={activeId === c.id}>
-                  <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-background hover:bg-white/5">
-                    <div className="flex items-center gap-3">
+                  <div className="group flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3 p-2 rounded-md bg-transparent group-hover:bg-white/5 transition-colors flex-grow">
                       <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
                       <div className="w-6 h-6 flex items-center justify-center">
                         {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
@@ -425,9 +425,9 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                             getIcon(c.icon, { className: "w-5 h-5" })
                         )}
                       </div>
-                      <span>{c.name}</span>
+                      <span className="truncate">{c.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategory(c)}>
                         <LucideIcons.Pencil className="w-4 h-4" />
                       </Button>
