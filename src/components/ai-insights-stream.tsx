@@ -257,7 +257,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                 />
             </div>
             <DialogFooter className="pt-4 gap-4 sm:justify-center">
-              <DialogClose asChild><Button variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button></DialogClose>
+              <Button asChild variant="outline" className="w-32 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>إلغاء</DialogClose></Button>
               <Button type="submit" className="w-32 bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
           </form>
@@ -530,7 +530,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button variant="outline" onClick={handleCancel} className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
+            <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">إلغاء</Button>
             <Button onClick={handleSaveChanges} className="w-36">حفظ</Button>
         </DialogFooter>
       </DialogContent>
@@ -569,7 +569,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute top-0 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -top-2 -right-4 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
