@@ -10,4 +10,5 @@ export type WebApp = {
   url: string;
   icon: string; // Can be a lucide-react icon name, a URL to a favicon, or a data URI
   categoryId: string;
+  clip?: boolean;
 };

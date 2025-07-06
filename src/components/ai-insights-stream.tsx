@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from '@/hooks/use-toast';
@@ -31,6 +31,7 @@ const appSchema = z.object({
   url: z.string().url("رابط غير صالح"),
   icon: z.string().min(1, "الأيقونة مطلوبة"),
   categoryId: z.string(),
+  clip: z.boolean().optional(),
 });
 
 const categorySchema = z.object({
@@ -75,19 +76,14 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? undefined : transition,
   };
-
-  const sortableItemStyle = isDragging ? {
-    ...style,
-    transition: 'none',
-  } : style;
 
 
   return (
     <div
       ref={setNodeRef}
-      style={sortableItemStyle}
+      style={style}
       {...attributes}
       {...listeners}
     >
@@ -110,7 +106,7 @@ const getFaviconUrl = (url: string) => {
 function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: WebApp | null, categories: Category[], onSave: (data: WebApp) => void, open: boolean, onOpenChange: (open: boolean) => void }) {
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
-    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' },
+    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '', clip: true },
   });
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
@@ -120,10 +116,10 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
   useEffect(() => {
     if (open) {
       if (app) {
-        form.reset(app);
+        form.reset({ ...app, clip: app.clip ?? true });
         setIconPreview(app.icon);
       } else {
-        form.reset({ name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '' });
+        form.reset({ name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '', clip: true });
         setIconPreview('');
       }
     }
@@ -240,6 +236,26 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="clip"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/10 bg-black/20 p-3 shadow-sm mt-2">
+                      <div className="space-y-0.5">
+                        <FormLabel>قص الحواف</FormLabel>
+                        <FormDescription className="text-xs">
+                          تفعيل لتدوير حواف الأيقونات المربعة.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -386,7 +402,7 @@ function ManageCategoriesDialog({ categories, onCategoriesUpdate, children }: { 
   );
 }
 
-const AppIcon = ({ app, onEdit, onDelete, isDragging, clipCorners }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, clipCorners: boolean }) => {
+const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
     <div className="relative group flex flex-col items-center gap-2 text-center w-20">
       <a
@@ -407,7 +423,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging, clipCorners }: { app: WebA
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
             <div className={cn(
               "w-full h-full",
-              clipCorners && "rounded-lg overflow-hidden"
+              app.clip && "rounded-lg overflow-hidden"
             )}>
               <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
             </div>
@@ -437,7 +453,6 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging, clipCorners }: { app: WebA
 export function AiInsightsStream({ initialApps, initialCategories }: { initialApps: WebApp[], initialCategories: Category[] }) {
   const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
   const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
-  const [clipCorners, setClipCorners] = useLocalStorage<boolean>('clip-corners', true);
   const [currentFilter, setCurrentFilter] = useState('all');
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -603,14 +618,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </Tooltip>
               </TooltipProvider>
             </ManageCategoriesDialog>
-            <div className="flex items-center gap-2 p-1.5 px-3 rounded-full bg-black/20 border border-white/10">
-                <Label htmlFor="clip-corners-switch" className="text-sm cursor-pointer select-none">قص الحواف</Label>
-                <Switch
-                    id="clip-corners-switch"
-                    checked={clipCorners}
-                    onCheckedChange={setClipCorners}
-                />
-            </div>
           </div>
         </div>
 
@@ -639,7 +646,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                         onEdit={() => handleOpenEditDialog(app)}
                         onDelete={() => setAppToDelete(app)}
                         isDragging={activeId === app.id}
-                        clipCorners={clipCorners}
                       />
                     </SortableItem>
                   ))}
