@@ -66,8 +66,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 250,
-      easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      duration: 300,
+      easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
     },
   });
 
@@ -404,7 +404,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         >
           {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
             <div className="w-full h-full rounded-lg overflow-hidden bg-transparent">
-              <div className="w-full h-full p-1">
+              <div className="w-full h-full p-1 bg-black/10 rounded-lg">
                 <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
               </div>
             </div>
