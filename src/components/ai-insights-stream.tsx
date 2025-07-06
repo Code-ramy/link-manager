@@ -460,7 +460,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
 
 const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
-    <div className="group flex flex-row items-center gap-2">
+    <div className="group flex flex-row items-start gap-1">
       {/* Container for icon and name */}
       <div className="flex flex-col items-center gap-2 text-center w-20">
         <div className="w-16 h-16">
