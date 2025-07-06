@@ -245,9 +245,6 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input p-3 shadow-sm mt-1">
                       <div className="space-y-0.5">
                         <FormLabel>قص الحواف</FormLabel>
-                        <FormDescription className="text-xs text-muted-foreground/80">
-                          تفعيل لتدوير حواف الأيقونات المربعة.
-                        </FormDescription>
                       </div>
                       <FormControl>
                         <Switch
