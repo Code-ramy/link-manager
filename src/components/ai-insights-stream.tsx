@@ -70,7 +70,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     id,
     transition: {
       duration: 350,
-      easing: 'cubic-bezier(0.23, 1, 0.32, 1)',
+      easing: 'cubic-bezier(0.19, 1, 0.22, 1)',
     },
   });
 
