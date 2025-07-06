@@ -66,8 +66,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 300,
-      easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
+      duration: 350,
+      easing: 'cubic-bezier(0.23, 1, 0.32, 1)',
     },
   });
 
@@ -396,7 +396,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       >
         <div
           className={cn(
-            'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
+            'w-full h-full transition-all duration-300 ease-in-out flex items-center justify-center',
             isDragging
               ? 'scale-110 shadow-2xl'
               : 'scale-100 shadow-none'
