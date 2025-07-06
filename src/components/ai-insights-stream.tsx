@@ -477,7 +477,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
               className={cn(
                 'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
                 isDragging
-                  ? 'scale-110 shadow-2xl transform-gpu'
+                  ? 'scale-110 shadow-2xl transform-gpu z-10'
                   : 'scale-100 shadow-none'
               )}
             >
@@ -499,7 +499,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
       
       {/* Buttons container */}
       <div className={cn(
-        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-2 -ml-4"
+        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-2 -ml-3"
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
           <LucideIcons.Pencil className="w-4 h-4" />
