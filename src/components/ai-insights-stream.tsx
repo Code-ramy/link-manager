@@ -243,15 +243,13 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   control={form.control}
                   name="clip"
                   render={({ field }) => (
-                     <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
-                        <FormLabel>Clip Edges</FormLabel>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                    </FormItem>
+                     <div className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
+                        <Label>Clip Edges</Label>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                    </div>
                   )}
                 />
             </div>
@@ -375,7 +373,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
           <DialogTitle>Manage Categories</DialogTitle>
         </DialogHeader>
 
-        <div className="max-h-[300px] overflow-y-auto overflow-x-hidden my-4 -mr-4 pr-4">
+        <div className="max-h-[300px] overflow-y-auto my-4">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
@@ -451,7 +449,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
             <Button onClick={handleCancel} variant="outline" className="w-36 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
-            <Button onClick={handleSaveChanges} className="w-36">Save Changes</Button>
+            <Button onClick={handleSaveChanges} className="w-36">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
