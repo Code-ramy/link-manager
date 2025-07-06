@@ -633,10 +633,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   return (
     <>
       <header className="bg-[#111217] w-full border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-28">
           <div className="flex items-center gap-4">
-            <Logo width={40} height={40} />
-            <h1 className="text-2xl font-sans">
+            <Logo width={56} height={56} />
+            <h1 className="text-4xl font-sans">
               <span className="font-bold text-white">Link</span>
               <span className="text-blue-400"> Manager</span>
             </h1>
@@ -788,8 +788,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 sm:justify-center gap-4">
-            <Button variant="destructive" onClick={handleDeleteApp} className="w-full">Delete</Button>
             <Button variant="outline" onClick={() => setAppToDelete(null)} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteApp} className="w-full">Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
