@@ -14,7 +14,6 @@ import { useForm } from "react-hook-form";
 import { useDebounce } from 'use-debounce';
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { suggestCategoryIcons } from '@/ai/flows/suggest-category-icons';
 
 
 import { Button } from "@/components/ui/button";
@@ -72,7 +71,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 150,
+      duration: 250,
       easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
@@ -242,7 +241,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   control={form.control}
                   name="clip"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
                       <div className="space-y-0.5">
                         <FormLabel>قص الحواف</FormLabel>
                       </div>
@@ -275,9 +274,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
 
-  const [suggestedIcons, setSuggestedIcons] = useState<string[]>([]);
-  const [isSuggestingIcons, setIsSuggestingIcons] = useState(false);
-
   useEffect(() => {
     if (open) {
       setLocalCategories(JSON.parse(JSON.stringify(categories)));
@@ -288,35 +284,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: '' },
   });
-
-  const categoryNameValue = form.watch('name');
-  const [debouncedCategoryName] = useDebounce(categoryNameValue, 500);
-
-  const fetchSuggestions = useCallback(async (categoryName: string) => {
-    if (!categoryName || categoryName.trim().length <= 2) {
-      setSuggestedIcons([]);
-      return;
-    }
-    setIsSuggestingIcons(true);
-    try {
-      const result = await suggestCategoryIcons({ categoryName });
-      setSuggestedIcons(result.icons);
-    } catch (error) {
-      console.error("Error suggesting icons:", error);
-      toast({ variant: 'destructive', title: 'فشل اقتراح الأيقونات' });
-    } finally {
-      setIsSuggestingIcons(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSuggestions(debouncedCategoryName);
-  }, [debouncedCategoryName, fetchSuggestions]);
-
-  const handleRefreshSuggestions = () => {
-    const categoryName = form.getValues('name');
-    fetchSuggestions(categoryName);
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -340,7 +307,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
-    setSuggestedIcons([]);
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -400,7 +366,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
     setEditingCategory(null);
     setIconPreview('');
     form.reset({ name: '', icon: '' });
-    setSuggestedIcons([]);
   }
 
   return (
@@ -475,51 +440,6 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
                   </FormItem>
-                  
-                  {(isSuggestingIcons || suggestedIcons.length > 0) && (
-                    <div className="p-3 rounded-md border border-dashed border-white/20">
-                      <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-xs text-muted-foreground">أيقونات مقترحة</h5>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={handleRefreshSuggestions}
-                          disabled={isSuggestingIcons || !form.getValues('name')}
-                        >
-                          <LucideIcons.RefreshCw className={cn("w-4 h-4", isSuggestingIcons && "animate-spin")} />
-                        </Button>
-                      </div>
-                      <AnimatePresence>
-                        {isSuggestingIcons ? (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-wrap gap-2">
-                             {Array.from({ length: 8 }).map((_, i) => (
-                                <Skeleton key={i} className="w-9 h-9 rounded-md" />
-                            ))}
-                          </motion.div>
-                        ) : (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-wrap gap-2">
-                            {suggestedIcons.map(iconName => (
-                              <Button
-                                key={iconName}
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => {
-                                  form.setValue('icon', iconName);
-                                  setIconPreview(iconName);
-                                }}
-                              >
-                                {getIcon(iconName, { className: 'w-5 h-5' })}
-                              </Button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
                 </div>
             </div>
             
@@ -552,7 +472,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
           className={cn(
             'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
             isDragging
-              ? 'scale-110 shadow-2xl'
+              ? 'scale-110 shadow-2xl transform-gpu'
               : 'scale-100 shadow-none'
           )}
         >
@@ -569,16 +489,26 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
         </div>
       </a>
       <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
-      <div className="absolute -top-2 -right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-black/50 hover:bg-black/80">
               <LucideIcons.MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onSelect={onEdit}><LucideIcons.Pencil className="w-4 h-4 ml-2"/>تعديل</DropdownMenuItem>
-            <DropdownMenuItem onSelect={onDelete} className="text-destructive"><LucideIcons.Trash2 className="w-4 h-4 ml-2"/>حذف</DropdownMenuItem>
+          <DropdownMenuContent 
+            className="modal-card border-white/20 w-32" 
+            align="end" 
+            sideOffset={8}
+          >
+            <DropdownMenuItem onSelect={onEdit} className="focus:bg-white/10 justify-end">
+              <span>تعديل</span>
+              <LucideIcons.Pencil />
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onDelete} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 justify-end">
+              <span>حذف</span>
+              <LucideIcons.Trash2 />
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -769,7 +699,16 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </div>
 
         <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
-          {hasMounted ? (
+          {!hasMounted ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
+                  <Skeleton className="w-16 h-16 rounded-lg !duration-1000" />
+                  <Skeleton className="h-4 w-20 rounded-md !duration-1000" />
+                </div>
+              ))}
+            </div>
+           ) : (
             <DndContext 
               id={dndId}
               sensors={sensors} 
@@ -802,15 +741,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 </AnimatePresence>
               </SortableContext>
             </DndContext>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
-                  <Skeleton className="w-16 h-16 rounded-lg" />
-                  <Skeleton className="h-4 w-20 rounded-md" />
-                </div>
-              ))}
-            </div>
           )}
         </main>
       </div>
