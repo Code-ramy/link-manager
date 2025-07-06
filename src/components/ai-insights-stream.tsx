@@ -632,7 +632,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   return (
     <>
-      <header className="bg-[#111217] w-full border-b border-white/10">
+      <header className="fixed top-0 left-0 w-full bg-black/40 backdrop-blur-xl border-b border-white/10 z-30">
         <div className="w-full px-8 sm:px-10 lg:px-12 flex items-center justify-between h-20">
           <div className="flex items-center gap-4">
             <Logo width={48} height={48} />
@@ -657,7 +657,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           </div>
         </div>
       </header>
-      <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         <div className="flex justify-center my-10">
           <div className="flex items-center gap-4">
@@ -796,5 +796,3 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
-
-    
