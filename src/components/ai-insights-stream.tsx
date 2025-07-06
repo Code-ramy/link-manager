@@ -705,11 +705,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
-        <div className="flex justify-center my-20">
+        <div className="flex justify-center my-24">
           <div className="flex items-center">
             <nav
               ref={filterNavRef}
-              className="glass-bar relative flex items-center flex-wrap justify-center gap-1 rounded-full p-1.5"
+              className="glass-bar relative flex items-center flex-wrap justify-center gap-1 rounded-full p-1.5 shadow-lg"
             >
               <div
                 ref={markerRef}
@@ -828,9 +828,3 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
-
-    
-
-    
-
-
