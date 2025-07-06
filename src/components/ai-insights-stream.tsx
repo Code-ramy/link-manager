@@ -69,8 +69,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 500,
-      easing: 'cubic-bezier(0.19, 1, 0.22, 1)',
+      duration: 350,
+      easing: 'cubic-bezier(0.83, 0, 0.17, 1)',
     },
   });
 
@@ -168,7 +168,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 pt-2">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center gap-4">
               <div className="w-24 h-24 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
                     <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
@@ -176,7 +176,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                     <LucideIcons.ImageIcon className="w-12 h-12 text-muted-foreground" />
                 )}
               </div>
-              <div className="flex flex-col gap-2 justify-center">
+              <div className="flex flex-col items-center gap-2">
                 <p className="text-sm font-medium text-gray-300">أيقونة التطبيق</p>
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20">
                   <LucideIcons.Upload className="ml-2 h-4 w-4" />
@@ -260,7 +260,7 @@ function EditAppDialog({ app, categories, onSave, onOpenChange, open }: { app?: 
                   )}
                 />
             </div>
-            <DialogFooter className="pt-4 gap-2">
+            <DialogFooter className="pt-4 gap-2 sm:justify-center">
               <DialogClose asChild><Button variant="outline" className="bg-transparent border-white/20 hover:bg-white/10">إلغاء</Button></DialogClose>
               <Button type="submit" className="bg-primary hover:bg-primary/90 text-white">حفظ</Button>
             </DialogFooter>
