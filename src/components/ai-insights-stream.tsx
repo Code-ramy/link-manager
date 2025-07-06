@@ -534,6 +534,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const markerRef = useRef<HTMLDivElement>(null);
   const dndId = useId();
 
+  const importFileInputRef = useRef<HTMLInputElement>(null);
+
   const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
     setHasMounted(true);
@@ -630,8 +632,67 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     setIsDragging(false);
   }
 
+  const handleExport = () => {
+    const data = {
+      apps,
+      categories,
+    };
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = `link-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+    toast({ title: 'Export Successful', description: 'Your data has been saved.', variant: 'success' });
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result;
+        if (typeof text !== 'string') {
+          throw new Error("Could not read the file.");
+        }
+        const importedData = JSON.parse(text);
+        
+        if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories)) {
+          setApps(importedData.apps);
+          setCategories(importedData.categories);
+          toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });
+        } else {
+          throw new Error("Invalid file format.");
+        }
+      } catch (error: any) {
+        toast({ title: 'Import Failed', description: error.message || 'The file is not valid.', variant: 'destructive' });
+      } finally {
+        if (event.target) {
+            event.target.value = '';
+        }
+      }
+    };
+    reader.onerror = () => {
+        toast({ title: 'Import Failed', description: 'Error reading file.', variant: 'destructive' });
+    }
+    reader.readAsText(file);
+  };
+
   return (
     <>
+      <input
+        type="file"
+        accept=".json"
+        ref={importFileInputRef}
+        onChange={handleImport}
+        className="hidden"
+      />
       <header className="fixed top-0 left-0 w-full bg-black/50 backdrop-blur-xl border-b border-white/10 z-30">
         <div className="w-full px-8 sm:px-10 lg:px-12 flex items-center justify-between h-20">
           <div className="flex items-center gap-4">
@@ -642,11 +703,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium">
+            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium" onClick={() => importFileInputRef.current?.click()}>
               <LucideIcons.Upload className="mr-2 h-4 w-4" />
               Import
             </Button>
-            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium">
+            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium" onClick={handleExport}>
               <LucideIcons.Download className="mr-2 h-4 w-4" />
               Export
             </Button>
@@ -788,7 +849,3 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     </>
   );
 }
-
-    
-
-    
