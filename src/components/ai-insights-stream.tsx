@@ -428,7 +428,7 @@ function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUp
                         <LucideIcons.Upload className="mr-2 h-4 w-4" />
                         Upload Icon
                       </Button>
-                      <Button size="sm" type="submit">{editingCategory ? 'Update Category' : 'Add Category'}</Button>
+                      <Button size="sm" type="submit" className="w-24">{editingCategory ? 'Update' : 'Add'}</Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
