@@ -50,11 +50,6 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
       <motion.div variants={itemVariants} className={cn(isDragging ? 'opacity-0' : '')}>
         {children}
       </motion.div>
-      {isDragging && (
-          <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-white/30 -mt-4"></div>
-          </div>
-      )}
     </div>
   );
 };
