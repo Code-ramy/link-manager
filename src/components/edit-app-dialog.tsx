@@ -112,7 +112,7 @@ export function EditAppDialog({ app, open, onOpenChange }: EditAppDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm modal-card border-white/20">
         <DialogHeader>
-          <DialogTitle className="font-headline text-xl text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
+          <DialogTitle className="font-headline text-lg text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
