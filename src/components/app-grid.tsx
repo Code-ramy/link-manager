@@ -18,7 +18,7 @@ const containerVariants = {
 const itemVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.6, -0.05, 0.01, 0.99] } },
     hidden: { opacity: 0, y: 20, transition: { duration: 0.2 } },
-    exit: { opacity: 0, scale: 0.5, transition: { duration: 0.3 } }
+    exit: { opacity: 0, scale: 0.6, y: 40, transition: { duration: 0.4, ease: "circOut" } }
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
