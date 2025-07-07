@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import * as LucideIcons from "lucide-react";
 import type { Category } from '@/lib/types';
-import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -123,12 +123,18 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
   };
   
   const handleCancel = () => {
-    setEditingCategory(null);
     onOpenChange(false);
   }
 
+  const handleOpenChange = (isOpen: boolean) => {
+    onOpenChange(isOpen);
+    if (!isOpen) {
+      setEditingCategory(null);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
         <DialogHeader><DialogTitle>Manage Categories</DialogTitle></DialogHeader>
         <div className="max-h-[300px] overflow-y-auto my-4 pr-4">
