@@ -55,24 +55,28 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
 
-  useEffect(() => {
-    if (open) {
-      setLocalCategories(JSON.parse(JSON.stringify(categories)));
-    }
-  }, [open, categories]);
-  
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: '' },
   });
 
-  // This effect now ONLY populates the form when editing, it does not clear it.
   useEffect(() => {
-    if (editingCategory) {
-      form.reset(editingCategory);
-      setIconPreview(editingCategory.icon);
+    if (open) {
+      setLocalCategories(JSON.parse(JSON.stringify(categories)));
+    } else {
+      // When the dialog is closed by any means, reset all component state.
+      // This ensures a clean slate the next time it opens.
+      setEditingCategory(null);
+      form.reset({ name: '', icon: '' });
+      setIconPreview('');
     }
-  }, [editingCategory, form]);
+  }, [open, categories, form]);
+
+  const handleEditClick = (category: Category) => {
+    setEditingCategory(category);
+    form.reset(category);
+    setIconPreview(category.icon);
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -93,7 +97,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     } else {
       setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
-    // Explicitly reset the form after saving
+    // Explicitly reset the form after saving to prepare for adding a new category
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
@@ -132,18 +136,8 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     onOpenChange(false);
   }
 
-  const handleOpenChange = (isOpen: boolean) => {
-    onOpenChange(isOpen);
-    // When the dialog closes for any reason, reset the form state.
-    if (!isOpen) {
-      setEditingCategory(null);
-      form.reset({ name: '', icon: '' });
-      setIconPreview('');
-    }
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
         <DialogHeader><DialogTitle>Manage Categories</DialogTitle></DialogHeader>
         <div className="max-h-[300px] overflow-y-auto my-4 pr-4">
@@ -167,7 +161,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                       <span className="truncate">{c.name}</span>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pl-2 flex-shrink-0">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingCategory(c)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => handleEditClick(c)}>
                         <LucideIcons.Pencil className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={() => handleDeleteCategory(c.id)}>
