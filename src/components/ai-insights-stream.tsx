@@ -797,7 +797,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
               onDragEnd={handleAppDragEnd}
               onDragCancel={handleAppDragCancel}
             >
-              <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+              <SortableContext items={filteredApps.map(a => a.id)} strategy={rectSortingStrategy}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentFilter}
