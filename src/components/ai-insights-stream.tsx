@@ -563,12 +563,9 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     const activeBtn = filterNavRef.current.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
     if (!markerRef.current || !activeBtn) return;
   
-    const navRect = filterNavRef.current.getBoundingClientRect();
-    const targetRect = activeBtn.getBoundingClientRect();
-    
-    markerRef.current.style.width = `${targetRect.width}px`;
-    markerRef.current.style.height = `${targetRect.height}px`;
-    markerRef.current.style.transform = `translateX(${targetRect.left - navRect.left}px)`;
+    markerRef.current.style.width = `${activeBtn.offsetWidth}px`;
+    markerRef.current.style.height = `${activeBtn.offsetHeight}px`;
+    markerRef.current.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
     
   }, [currentFilter]);
 
@@ -627,11 +624,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const handleAppDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      setApps((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = apps.findIndex((item) => item.id === active.id);
+      const newIndex = apps.findIndex((item) => item.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+          setApps(arrayMove(apps, oldIndex, newIndex));
+      }
     }
     setActiveId(null);
     setIsDragging(false);
@@ -735,10 +732,10 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         <div className="flex justify-center my-24">
-          <div className="flex items-center">
+          <div className="flex items-center w-full max-w-3xl">
             <nav
               ref={filterNavRef}
-              className="glass-bar relative flex items-center flex-wrap justify-center gap-1 rounded-full p-1.5 shadow-lg"
+              className="glass-bar relative flex w-full items-center flex-nowrap overflow-x-auto scrollbar-hide scroll-fade gap-1 rounded-full p-1.5 shadow-lg"
             >
               <div
                 ref={markerRef}
@@ -797,7 +794,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
               onDragEnd={handleAppDragEnd}
               onDragCancel={handleAppDragCancel}
             >
-              <SortableContext items={filteredApps.map(a => a.id)} strategy={rectSortingStrategy}>
+              <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentFilter}
