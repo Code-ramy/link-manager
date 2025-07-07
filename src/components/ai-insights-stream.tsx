@@ -781,7 +781,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
-        <div className="flex justify-center mt-12 mb-8 min-h-[56px] items-center">
+        <div className="flex justify-center mt-16 mb-8 min-h-[56px] items-center">
           {categories.length > 0 && (
             <div className="inline-flex max-w-3xl">
               <nav
@@ -835,7 +835,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           )}
         </div>
 
-        <main className={cn("pb-20 pt-16", isDragging && '[&_a]:pointer-events-none')}>
+        <main className={cn("pb-20 pt-12", isDragging && '[&_a]:pointer-events-none')}>
           {!hasMounted ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
               {Array.from({ length: 12 }).map((_, i) => (
