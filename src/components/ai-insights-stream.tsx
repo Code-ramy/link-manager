@@ -581,7 +581,16 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   useLayoutEffect(() => {
     updateScrollState();
     window.addEventListener('resize', updateScrollState);
-    return () => window.removeEventListener('resize', updateScrollState);
+    const nav = filterNavRef.current;
+    if (nav) {
+      nav.addEventListener('scroll', updateScrollState, { passive: true });
+    }
+    return () => {
+      window.removeEventListener('resize', updateScrollState);
+      if (nav) {
+        nav.removeEventListener('scroll', updateScrollState);
+      }
+    };
   }, [categories, updateScrollState]);
 
   const moveMarker = useCallback(() => {
@@ -597,10 +606,22 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   useEffect(() => {
     moveMarker();
-  }, [currentFilter, categories, moveMarker]);
+    setTimeout(updateScrollState, 350); 
+  }, [currentFilter, categories, moveMarker, updateScrollState]);
   
   const handleFilterClick = (filter: string) => {
     setCurrentFilter(filter);
+    const nav = filterNavRef.current;
+    if (!nav) return;
+
+    const activeBtn = nav.querySelector(`[data-filter="${filter}"]`) as HTMLElement;
+    if (activeBtn) {
+      activeBtn.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
   };
 
   const handleSaveApp = (appData: WebApp) => {
