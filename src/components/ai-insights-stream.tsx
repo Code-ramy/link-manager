@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@d
 import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as LucideIcons from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState, useId } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useId, useLayoutEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { useDebounce } from 'use-debounce';
 import { z } from "zod";
@@ -542,6 +542,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true, isOverflowing: false });
   const dndId = useId();
 
   const importFileInputRef = useRef<HTMLInputElement>(null);
@@ -552,11 +553,36 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   }, []);
   
   const { toast } = useToast();
-
-  const filteredApps = apps.filter(app => {
+  
+  const appsToRender = apps.filter(app => {
     if (currentFilter === 'all') return true;
     return app.categoryId === currentFilter;
   });
+
+  const appIds = appsToRender.map(a => a.id);
+
+  const updateScrollState = useCallback(() => {
+    const nav = filterNavRef.current;
+    if (!nav) return;
+
+    const buffer = 1; // Buffer for floating point inaccuracies
+    const isOverflowing = nav.scrollWidth > nav.clientWidth + buffer;
+    const atStart = nav.scrollLeft <= 0;
+    const atEnd = nav.scrollLeft >= nav.scrollWidth - nav.clientWidth - buffer;
+
+    setScrollState(prevState => {
+      if (prevState.isOverflowing !== isOverflowing || prevState.atStart !== atStart || prevState.atEnd !== atEnd) {
+        return { isOverflowing, atStart, atEnd };
+      }
+      return prevState;
+    });
+  }, []);
+  
+  useLayoutEffect(() => {
+    updateScrollState();
+    window.addEventListener('resize', updateScrollState);
+    return () => window.removeEventListener('resize', updateScrollState);
+  }, [categories, updateScrollState]);
 
   const moveMarker = useCallback(() => {
     if (!filterNavRef.current) return;
@@ -571,10 +597,6 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
 
   useEffect(() => {
     moveMarker();
-    window.addEventListener('resize', moveMarker);
-    return () => {
-      window.removeEventListener('resize', moveMarker);
-    };
   }, [currentFilter, categories, moveMarker]);
   
   const handleFilterClick = (filter: string) => {
@@ -624,15 +646,22 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
   const handleAppDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = apps.findIndex((item) => item.id === active.id);
-      const newIndex = apps.findIndex((item) => item.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-          setApps(arrayMove(apps, oldIndex, newIndex));
-      }
+        const oldIndexInFiltered = appsToRender.findIndex(app => app.id === active.id);
+        const newIndexInFiltered = appsToRender.findIndex(app => app.id === over.id);
+
+        const activeApp = appsToRender[oldIndexInFiltered];
+        const overApp = appsToRender[newIndexInFiltered];
+        
+        const oldIndexInFull = apps.findIndex(app => app.id === activeApp.id);
+        const newIndexInFull = apps.findIndex(app => app.id === overApp.id);
+
+        if (oldIndexInFull !== -1 && newIndexInFull !== -1) {
+            setApps(arrayMove(apps, oldIndexInFull, newIndexInFull));
+        }
     }
     setActiveId(null);
     setIsDragging(false);
-  };
+};
   
   const handleAppDragCancel = () => {
     setActiveId(null);
@@ -732,10 +761,18 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         <div className="flex justify-center my-24">
-          <div className="flex items-center w-full max-w-3xl">
+          <div className="inline-flex max-w-full">
             <nav
               ref={filterNavRef}
-              className="glass-bar relative flex w-full items-center flex-nowrap overflow-x-auto scrollbar-hide scroll-fade gap-1 rounded-full p-1.5 shadow-lg"
+              onScroll={updateScrollState}
+              className={cn(
+                "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg",
+                {
+                  'scroll-fade-both': scrollState.isOverflowing && !scrollState.atStart && !scrollState.atEnd,
+                  'scroll-fade-right': scrollState.isOverflowing && scrollState.atStart && !scrollState.atEnd,
+                  'scroll-fade-left': scrollState.isOverflowing && !scrollState.atStart && scrollState.atEnd,
+                }
+              )}
             >
               <div
                 ref={markerRef}
@@ -794,7 +831,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
               onDragEnd={handleAppDragEnd}
               onDragCancel={handleAppDragCancel}
             >
-              <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+              <SortableContext items={appIds} strategy={rectSortingStrategy}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentFilter}
@@ -804,7 +841,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                     animate="visible"
                     exit="hidden"
                   >
-                    {filteredApps.map((app) => (
+                    {appsToRender.map((app) => (
                       <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
                         <AppIcon
                           app={app}
