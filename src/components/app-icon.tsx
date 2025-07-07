@@ -41,7 +41,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, on
             </div>
           </a>
         </div>
-        <p className="text-sm text-white font-semibold w-24 truncate">{app.name}</p>
+        <p className="text-base text-white w-24 truncate">{app.name}</p>
       </div>
       
       <div className={cn(
