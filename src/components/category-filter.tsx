@@ -53,7 +53,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
 
   useEffect(() => {
     moveMarker();
-    setTimeout(updateScrollState, 350);
+    setTimeout(updateScrollState, 550);
   }, [currentFilter, categories, moveMarker, updateScrollState]);
 
   const handleFilterClick = (filter: string) => {
@@ -87,7 +87,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
         >
           <div
             ref={markerRef}
-            className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-500 ease-in-out"
+            className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]"
           ></div>
           <button
             data-filter="all"
