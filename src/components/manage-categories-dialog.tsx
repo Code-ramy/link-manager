@@ -183,7 +183,6 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                 )} />
                 <div className="space-y-4">
                   <FormItem>
-                    <FormLabel>Icon</FormLabel>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                           {iconPreview ? (
