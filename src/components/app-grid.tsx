@@ -43,14 +43,18 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     transition: isDragging ? undefined : transition,
     zIndex: isDragging ? 10 : 'auto',
     position: 'relative',
-    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div variants={itemVariants}>
+      <motion.div variants={itemVariants} className={cn(isDragging ? 'opacity-0' : '')}>
         {children}
       </motion.div>
+      {isDragging && (
+          <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-white/30 -mt-4"></div>
+          </div>
+      )}
     </div>
   );
 };
