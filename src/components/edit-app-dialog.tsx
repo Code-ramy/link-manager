@@ -38,9 +38,10 @@ interface EditAppDialogProps {
   app?: WebApp | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultCategoryId?: string;
 }
 
-export function EditAppDialog({ app, open, onOpenChange }: EditAppDialogProps) {
+export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
   const { categories, handleSaveApp } = useAppContext();
   
   const form = useForm<z.infer<typeof appSchema>>({
@@ -58,11 +59,12 @@ export function EditAppDialog({ app, open, onOpenChange }: EditAppDialogProps) {
         form.reset({ ...app, clip: app.clip ?? true });
         setIconPreview(app.icon);
       } else {
-        form.reset({ name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '', clip: true });
+        const defaultCat = defaultCategoryId || categories[0]?.id || '';
+        form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
         setIconPreview('');
       }
     }
-  }, [app, open, categories, form]);
+  }, [app, open, categories, form, defaultCategoryId]);
 
   useEffect(() => {
     const currentUrl = form.getValues('url');
@@ -140,7 +142,7 @@ export function EditAppDialog({ app, open, onOpenChange }: EditAppDialogProps) {
               <FormField control={form.control} name="categoryId" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                     <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select>

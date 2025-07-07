@@ -117,6 +117,7 @@ export function AiInsightsStream() {
             appsToRender={appsToRender}
             onEdit={handleOpenEditDialog}
             onDelete={setAppToDelete}
+            onAddApp={handleOpenAddDialog}
             currentFilter={currentFilter}
           />
         )}
@@ -126,6 +127,7 @@ export function AiInsightsStream() {
         open={isEditAppOpen}
         onOpenChange={setIsEditAppOpen}
         app={editingApp}
+        defaultCategoryId={currentFilter !== 'all' ? currentFilter : undefined}
       />
       
       <ManageCategoriesDialog
