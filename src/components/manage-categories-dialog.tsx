@@ -66,13 +66,11 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     defaultValues: { name: '', icon: '' },
   });
 
+  // This effect now ONLY populates the form when editing, it does not clear it.
   useEffect(() => {
     if (editingCategory) {
       form.reset(editingCategory);
       setIconPreview(editingCategory.icon);
-    } else {
-      form.reset({ name: '', icon: '' });
-      setIconPreview('');
     }
   }, [editingCategory, form]);
 
@@ -95,11 +93,19 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     } else {
       setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
+    // Explicitly reset the form after saving
     setEditingCategory(null);
+    form.reset({ name: '', icon: '' });
+    setIconPreview('');
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (editingCategory?.id === id) setEditingCategory(null);
+    // If the category being deleted is the one being edited, clear the form.
+    if (editingCategory?.id === id) {
+      setEditingCategory(null);
+      form.reset({ name: '', icon: '' });
+      setIconPreview('');
+    }
     setLocalCategories(localCategories.filter(c => c.id !== id));
   };
   
@@ -128,8 +134,11 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
 
   const handleOpenChange = (isOpen: boolean) => {
     onOpenChange(isOpen);
+    // When the dialog closes for any reason, reset the form state.
     if (!isOpen) {
       setEditingCategory(null);
+      form.reset({ name: '', icon: '' });
+      setIconPreview('');
     }
   };
 
