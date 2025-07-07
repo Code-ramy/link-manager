@@ -509,7 +509,7 @@ const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: (
             </div>
           </a>
         </div>
-        <p className="text-sm text-white font-medium w-24 truncate">{app.name}</p>
+        <p className="text-sm text-white font-semibold w-24 truncate">{app.name}</p>
       </div>
       
       {/* Buttons container */}
@@ -804,7 +804,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 onClick={() => handleFilterClick('all')}
                 className={cn(
                   "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
-                  currentFilter === "all" ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  currentFilter === "all" ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
                 )}
               >
                 All
@@ -816,7 +816,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   onClick={() => handleFilterClick(c.id)}
                   className={cn(
                     "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
-                    currentFilter === c.id ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
+                    currentFilter === c.id ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
                   )}
                 >
                   <div className="flex h-5 w-5 items-center justify-center">
