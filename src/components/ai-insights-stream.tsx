@@ -756,7 +756,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
             <Logo width={48} height={48} />
             <h1 className="text-2xl font-sans relative">
               <span className="font-bold text-white">Link</span>
-              <span className="text-blue-400"> Manager</span>
+              <span className="text-blue-500"> Manager</span>
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -782,7 +782,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         <div className="flex justify-center my-24">
-          <div className="inline-flex max-w-6xl">
+          <div className="inline-flex max-w-3xl">
             <nav
               ref={filterNavRef}
               onScroll={updateScrollState}
@@ -803,7 +803,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                 data-filter="all"
                 onClick={() => handleFilterClick('all')}
                 className={cn(
-                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-colors duration-300",
+                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
                   currentFilter === "all" ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                 )}
               >
@@ -815,7 +815,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   data-filter={c.id}
                   onClick={() => handleFilterClick(c.id)}
                   className={cn(
-                    "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition-colors duration-300",
+                    "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
                     currentFilter === c.id ? "text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
                   )}
                 >
