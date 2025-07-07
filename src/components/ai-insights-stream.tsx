@@ -782,7 +782,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         {categories.length > 0 && (
-          <div className="flex justify-center my-24">
+          <div className="flex justify-center my-8">
             <div className="inline-flex max-w-3xl">
               <nav
                 ref={filterNavRef}
@@ -835,7 +835,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           </div>
         )}
 
-        <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
+        <main className={cn("pb-20 pt-16", isDragging && '[&_a]:pointer-events-none')}>
           {!hasMounted ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
               {Array.from({ length: 12 }).map((_, i) => (
@@ -844,6 +844,42 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
                   <Skeleton className="h-4 w-20 rounded-md !duration-1000" />
                 </div>
               ))}
+            </div>
+           ) : apps.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center pt-24">
+              <motion.div 
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
+              >
+                  <LucideIcons.LayoutGrid className="w-24 h-24 text-muted-foreground/50 mb-6" />
+              </motion.div>
+              <motion.h2 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="text-3xl font-bold text-white mb-3 font-headline"
+              >
+                  Your Space is Ready
+              </motion.h2>
+              <motion.p 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="text-muted-foreground text-lg mb-8 max-w-md"
+              >
+                  Click the "Add App" button to start organizing your favorite web applications and links.
+              </motion.p>
+              <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold" onClick={handleOpenAddDialog}>
+                      <LucideIcons.Plus className="mr-2 h-5 w-5" />
+                      Add First App
+                  </Button>
+              </motion.div>
             </div>
            ) : (
             <DndContext 
