@@ -782,7 +782,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
         <div className="flex justify-center my-24">
-          <div className="inline-flex max-w-full">
+          <div className="inline-flex max-w-6xl">
             <nav
               ref={filterNavRef}
               onScroll={updateScrollState}
