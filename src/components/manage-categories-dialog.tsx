@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from '@/lib/utils';
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -139,19 +140,30 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
               {localCategories.map(c => (
                 <SortableItem key={c.id} id={c.id} isDragging={activeId === c.id}>
-                  <div className="group flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-transparent group-hover:bg-white/5 transition-colors flex-grow">
-                      <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab"/>
-                      <div className="w-6 h-6 flex items-center justify-center">
+                  <div
+                    className={cn(
+                      "group flex items-center justify-between p-2 rounded-lg border mb-2 transition-colors",
+                      editingCategory?.id === c.id
+                        ? "bg-blue-600/20 border-blue-500"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 flex-grow min-w-0">
+                      <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab flex-shrink-0"/>
+                      <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                         {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
                             <img src={c.icon} alt={c.name} className="w-full h-full object-contain rounded-sm" />
                         ) : ( getIcon(c.icon, { className: "w-5 h-5" }) )}
                       </div>
                       <span className="truncate">{c.name}</span>
                     </div>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pl-2">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategory(c)}><LucideIcons.Pencil className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteCategory(c.id)}><LucideIcons.Trash2 className="w-4 h-4" /></Button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pl-2 flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingCategory(c)}>
+                        <LucideIcons.Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={() => handleDeleteCategory(c.id)}>
+                        <LucideIcons.Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </SortableItem>
