@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { FolderPlus, LayoutGrid, Plus } from 'lucide-react';
+import { FolderPlus, Box, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
@@ -17,7 +17,7 @@ export function EmptyState({ onAddApp, onAddCategory }: EmptyStateProps) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
       >
-        <LayoutGrid className="w-24 h-24 text-muted-foreground/50 mb-6" />
+        <Box className="w-24 h-24 text-muted-foreground/50 mb-6" />
       </motion.div>
       <motion.h2
         initial={{ y: 20, opacity: 0 }}
