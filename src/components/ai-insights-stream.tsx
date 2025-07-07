@@ -109,8 +109,8 @@ export function AiInsightsStream() {
             onFilterChange={setCurrentFilter}
         />
         
-        {hasMounted && apps.length === 0 ? (
-          <EmptyState onAddApp={handleOpenAddDialog} />
+        {hasMounted && apps.length === 0 && categories.length === 0 ? (
+          <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
         ) : (
           <AppGrid
             appsToRender={appsToRender}
