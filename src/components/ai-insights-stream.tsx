@@ -84,19 +84,19 @@ export function AiInsightsStream() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button size="lg" variant="outline" className="rounded-full text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
+            <Button variant="outline" className="rounded-lg text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
               <LucideIcons.Upload className="h-4 w-4" />
               Import
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
+            <Button variant="outline" className="rounded-lg text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
               <LucideIcons.Download className="h-4 w-4" />
               Export
             </Button>
-            <Button size="lg" className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
+            <Button className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
               <LucideIcons.Settings className="h-4 w-4" />
               Manage Categories
             </Button>
-            <Button size="lg" className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={handleOpenAddDialog}>
+            <Button className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={handleOpenAddDialog}>
               <LucideIcons.Plus className="h-4 w-4" />
               Add App
             </Button>
