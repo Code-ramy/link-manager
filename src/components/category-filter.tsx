@@ -87,7 +87,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
         >
           <div
             ref={markerRef}
-            className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-300 ease-in-out"
+            className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-500 ease-in-out"
           ></div>
           <button
             data-filter="all"
