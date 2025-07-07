@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { Wind, Plus } from 'lucide-react';
+import { Inbox, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CategoryEmptyStateProps {
@@ -16,7 +16,7 @@ export function CategoryEmptyState({ onAddApp }: CategoryEmptyStateProps) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
       >
-        <Wind className="w-24 h-24 text-muted-foreground/50 mb-6" />
+        <Inbox className="w-24 h-24 text-muted-foreground/50 mb-6" />
       </motion.div>
       <motion.h2
         initial={{ y: 20, opacity: 0 }}
