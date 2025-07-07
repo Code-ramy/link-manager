@@ -781,57 +781,59 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
-        <div className="flex justify-center my-24">
-          <div className="inline-flex max-w-3xl">
-            <nav
-              ref={filterNavRef}
-              onScroll={updateScrollState}
-              className={cn(
-                "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg",
-                {
-                  'scroll-fade-both': scrollState.isOverflowing && !scrollState.atStart && !scrollState.atEnd,
-                  'scroll-fade-right': scrollState.isOverflowing && scrollState.atStart && !scrollState.atEnd,
-                  'scroll-fade-left': scrollState.isOverflowing && !scrollState.atStart && scrollState.atEnd,
-                }
-              )}
-            >
-              <div
-                ref={markerRef}
-                className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-300 ease-in-out"
-              ></div>
-              <button
-                data-filter="all"
-                onClick={() => handleFilterClick('all')}
+        {categories.length > 0 && (
+          <div className="flex justify-center my-24">
+            <div className="inline-flex max-w-3xl">
+              <nav
+                ref={filterNavRef}
+                onScroll={updateScrollState}
                 className={cn(
-                  "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
-                  currentFilter === "all" ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
+                  "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg",
+                  {
+                    'scroll-fade-both': scrollState.isOverflowing && !scrollState.atStart && !scrollState.atEnd,
+                    'scroll-fade-right': scrollState.isOverflowing && scrollState.atStart && !scrollState.atEnd,
+                    'scroll-fade-left': scrollState.isOverflowing && !scrollState.atStart && scrollState.atEnd,
+                  }
                 )}
               >
-                All
-              </button>
-              {categories.map(c => (
+                <div
+                  ref={markerRef}
+                  className="absolute left-0 top-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-300 ease-in-out"
+                ></div>
                 <button
-                  key={c.id}
-                  data-filter={c.id}
-                  onClick={() => handleFilterClick(c.id)}
+                  data-filter="all"
+                  onClick={() => handleFilterClick('all')}
                   className={cn(
                     "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
-                    currentFilter === c.id ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
+                    currentFilter === "all" ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
                   )}
                 >
-                  <div className="flex h-5 w-5 items-center justify-center">
-                    {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
-                      <img src={c.icon} alt={c.name} className="h-full w-full object-contain" />
-                    ) : (
-                      getIcon(c.icon, {})
-                    )}
-                  </div>
-                  <span>{c.name}</span>
+                  All
                 </button>
-              ))}
-            </nav>
+                {categories.map(c => (
+                  <button
+                    key={c.id}
+                    data-filter={c.id}
+                    onClick={() => handleFilterClick(c.id)}
+                    className={cn(
+                      "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors duration-300",
+                      currentFilter === c.id ? "text-white" : "text-gray-200 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    <div className="flex h-5 w-5 items-center justify-center">
+                      {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
+                        <img src={c.icon} alt={c.name} className="h-full w-full object-contain" />
+                      ) : (
+                        getIcon(c.icon, {})
+                      )}
+                    </div>
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
-        </div>
+        )}
 
         <main className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
           {!hasMounted ? (
