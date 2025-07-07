@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import * as LucideIcons from "lucide-react";
+import type { Category, WebApp } from '@/lib/types';
 
 import { AppGrid } from '@/components/app-grid';
 import { CategoryFilter } from '@/components/category-filter';
@@ -40,6 +41,27 @@ export function AiInsightsStream() {
       handleDeleteApp(appToDelete.id);
       setAppToDelete(null);
     }
+  };
+
+  const handleCategoriesUpdate = (updatedCategories: Category[]) => {
+    const deletedCategoryIds = categories
+      .filter((c) => !updatedCategories.some((uc) => uc.id === c.id))
+      .map((c) => c.id);
+
+    if (deletedCategoryIds.includes(currentFilter)) {
+      const deletedCategoryIndex = categories.findIndex(
+        (c) => c.id === currentFilter
+      );
+
+      if (deletedCategoryIndex > 0) {
+        const previousCategory = categories[deletedCategoryIndex - 1];
+        setCurrentFilter(previousCategory.id);
+      } else {
+        setCurrentFilter('all');
+      }
+    }
+
+    setCategories(updatedCategories);
   };
 
   return (
@@ -109,7 +131,7 @@ export function AiInsightsStream() {
         open={isManageCategoriesOpen}
         onOpenChange={setIsManageCategoriesOpen}
         categories={categories}
-        onCategoriesUpdate={setCategories}
+        onCategoriesUpdate={handleCategoriesUpdate}
       />
 
       <DeleteAppDialog 
