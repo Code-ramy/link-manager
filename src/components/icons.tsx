@@ -1,3 +1,4 @@
 // This file is no longer used.
-// Icon logic is now handled within the components that use them.
+// A new centralized <Icon /> component has been created at src/components/icon.tsx
+// to handle all icon rendering logic, removing code duplication.
 export {};

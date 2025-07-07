@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { useToast } from "@/hooks/use-toast";
-import type { Category, WebApp } from '@/lib/types';
+import React, { useRef, useState } from 'react';
+import { useAppContext } from '@/contexts/app-context';
 import * as LucideIcons from "lucide-react";
 
 import { AppGrid } from '@/components/app-grid';
@@ -15,35 +13,18 @@ import { ManageCategoriesDialog } from '@/components/manage-categories-dialog';
 import { Button } from "@/components/ui/button";
 import { Logo } from '@/components/logo';
 
-export function AiInsightsStream({ initialApps, initialCategories }: { initialApps: WebApp[], initialCategories: Category[] }) {
-  const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialApps);
-  const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
+export function AiInsightsStream() {
+  const { apps, categories, hasMounted, handleExport, handleImport, setCategories, handleDeleteApp } = useAppContext();
+  
   const [currentFilter, setCurrentFilter] = useState('all');
-
   const [editingApp, setEditingApp] = useState<WebApp | null>(null);
   const [isEditAppOpen, setIsEditAppOpen] = useState(false);
   const [appToDelete, setAppToDelete] = useState<WebApp | null>(null);
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const importFileInputRef = useRef<HTMLInputElement>(null);
-  const [hasMounted, setHasMounted] = useState(false);
   
-  const { toast } = useToast();
-
-  useEffect(() => { setHasMounted(true); }, []);
-
   const appsToRender = apps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
 
-  const handleSaveApp = (appData: WebApp) => {
-    const appExists = apps.some(a => a.id === appData.id);
-    if (appExists) {
-      setApps(apps.map(a => a.id === appData.id ? appData : a));
-      toast({ title: "Updated successfully!", variant: "success" });
-    } else {
-      setApps([...apps, appData]);
-      toast({ title: "Added successfully!", variant: "success" });
-    }
-  };
-  
   const handleOpenAddDialog = () => {
     setEditingApp(null);
     setIsEditAppOpen(true);
@@ -54,56 +35,11 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
     setIsEditAppOpen(true);
   }
 
-  const handleDeleteApp = () => {
+  const confirmDelete = () => {
     if (appToDelete) {
-      setApps(apps.filter(a => a.id !== appToDelete.id));
-      toast({ title: "Deleted successfully!", variant: "destructive" });
+      handleDeleteApp(appToDelete.id);
       setAppToDelete(null);
     }
-  };
-
-  const handleExport = () => {
-    const data = { apps, categories };
-    const jsonString = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const href = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = `link-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(href);
-    toast({ title: 'Export Successful', description: 'Your data has been saved.', variant: 'success' });
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result;
-        if (typeof text !== 'string') throw new Error("Could not read the file.");
-        const importedData = JSON.parse(text);
-        
-        if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories)) {
-          setApps(importedData.apps);
-          setCategories(importedData.categories);
-          toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });
-        } else {
-          throw new Error("Invalid file format.");
-        }
-      } catch (error: any) {
-        toast({ title: 'Import Failed', description: error.message || 'The file is not valid.', variant: 'destructive' });
-      } finally {
-        if (event.target) event.target.value = '';
-      }
-    };
-    reader.onerror = () => {
-        toast({ title: 'Import Failed', description: 'Error reading file.', variant: 'destructive' });
-    }
-    reader.readAsText(file);
   };
 
   return (
@@ -145,9 +81,8 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
         </div>
       </header>
 
-      <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
+      <main id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
         <CategoryFilter 
-            categories={categories}
             currentFilter={currentFilter}
             onFilterChange={setCurrentFilter}
         />
@@ -156,22 +91,17 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
           <EmptyState onAddApp={handleOpenAddDialog} />
         ) : (
           <AppGrid
-            apps={appsToRender}
-            allApps={apps}
-            setApps={setApps}
+            appsToRender={appsToRender}
             onEdit={handleOpenEditDialog}
             onDelete={setAppToDelete}
-            hasMounted={hasMounted}
             currentFilter={currentFilter}
           />
         )}
-      </div>
+      </main>
 
       <EditAppDialog
         open={isEditAppOpen}
         onOpenChange={setIsEditAppOpen}
-        categories={categories}
-        onSave={handleSaveApp}
         app={editingApp}
       />
       
@@ -185,7 +115,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       <DeleteAppDialog 
         appToDelete={appToDelete}
         onClose={() => setAppToDelete(null)}
-        onConfirm={handleDeleteApp}
+        onConfirm={confirmDelete}
       />
     </>
   );

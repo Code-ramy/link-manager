@@ -1,5 +1,4 @@
 import { AiInsightsStream } from '@/components/ai-insights-stream';
-import { initialCategories, initialWebApps } from '@/lib/data';
 
 export default function Home() {
   return (
@@ -10,7 +9,7 @@ export default function Home() {
         <div className="shape shape3"></div>
         <div className="shape shape4"></div>
       </div>
-      <AiInsightsStream initialApps={initialWebApps} initialCategories={initialCategories} />
+      <AiInsightsStream />
     </>
   );
 }

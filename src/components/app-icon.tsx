@@ -4,11 +4,7 @@ import { cn } from '@/lib/utils';
 import type { WebApp } from '@/lib/types';
 import * as LucideIcons from "lucide-react";
 import { Button } from './ui/button';
-
-const getIcon = (name: string, props: any = {}) => {
-  const Icon = (LucideIcons as any)[name];
-  return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
-};
+import { Icon } from './icon';
 
 export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
@@ -30,16 +26,18 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, on
                   : 'scale-100 shadow-none'
               )}
             >
-              {app.icon.startsWith('data:image') || app.icon.startsWith('http') ? (
-                <div className={cn(
-                  "w-full h-full",
-                  app.clip && "rounded-lg overflow-hidden"
-                )}>
-                  <img src={app.icon} alt={app.name} className="w-full h-full object-contain" />
-                </div>
-              ) : (
-                getIcon(app.icon, { className: "w-9 h-9 text-white" })
-              )}
+              <div className={cn(
+                "w-full h-full flex items-center justify-center",
+                app.icon.startsWith('data:image') || app.icon.startsWith('http') 
+                  ? (app.clip && "rounded-lg overflow-hidden")
+                  : ""
+              )}>
+                <Icon
+                  name={app.icon}
+                  alt={app.name}
+                  className={app.icon.startsWith('data:image') || app.icon.startsWith('http') ? 'w-full h-full object-contain' : 'w-9 h-9 text-white'}
+                />
+              </div>
             </div>
           </a>
         </div>

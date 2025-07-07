@@ -15,16 +15,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from '@/lib/utils';
+import { Icon } from './icon';
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
   icon: z.string().min(1, "Icon is required"),
 });
-
-const getIcon = (name: string, props: any = {}) => {
-  const Icon = (LucideIcons as any)[name];
-  return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
-};
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
@@ -151,9 +147,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                       <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab flex-shrink-0"/>
                       <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                        {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
-                            <img src={c.icon} alt={c.name} className="w-full h-full object-contain rounded-sm" />
-                        ) : ( getIcon(c.icon, { className: "w-5 h-5" }) )}
+                        <Icon name={c.icon} className="w-5 h-5" />
                       </div>
                       <span className="truncate">{c.name}</span>
                     </div>
@@ -183,9 +177,9 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                     <FormLabel>Icon</FormLabel>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
-                          {iconPreview && iconPreview.startsWith('data:image') ? (
-                              <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
-                          ) : iconPreview ? ( getIcon(iconPreview, { className: 'w-7 h-7' }) ) : (
+                          {iconPreview ? (
+                              <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
+                          ) : (
                               <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
                           )}
                       </div>

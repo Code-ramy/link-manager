@@ -2,21 +2,16 @@
 
 import { useRef, useCallback, useLayoutEffect, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import type { Category } from '@/lib/types';
-import * as LucideIcons from "lucide-react";
-
-const getIcon = (name: string, props: any = {}) => {
-  const Icon = (LucideIcons as any)[name];
-  return Icon ? <Icon {...props} /> : <LucideIcons.Globe {...props} />;
-};
+import { useAppContext } from '@/contexts/app-context';
+import { Icon } from './icon';
 
 interface CategoryFilterProps {
-  categories: Category[];
   currentFilter: string;
   onFilterChange: (filter: string) => void;
 }
 
-export function CategoryFilter({ categories, currentFilter, onFilterChange }: CategoryFilterProps) {
+export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilterProps) {
+  const { categories } = useAppContext();
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true, isOverflowing: false });
@@ -115,11 +110,7 @@ export function CategoryFilter({ categories, currentFilter, onFilterChange }: Ca
               )}
             >
               <div className="flex h-5 w-5 items-center justify-center">
-                {c.icon && (c.icon.startsWith('data:image') || c.icon.startsWith('http')) ? (
-                  <img src={c.icon} alt={c.name} className="h-full w-full object-contain" />
-                ) : (
-                  getIcon(c.icon, {})
-                )}
+                <Icon name={c.icon} alt={c.name} className="h-full w-full object-contain" />
               </div>
               <span>{c.name}</span>
             </button>

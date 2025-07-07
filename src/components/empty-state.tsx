@@ -3,12 +3,19 @@
 import { motion } from 'framer-motion';
 import { LayoutGrid, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAppContext } from '@/contexts/app-context';
 
 interface EmptyStateProps {
   onAddApp: () => void;
 }
 
 export function EmptyState({ onAddApp }: EmptyStateProps) {
+  const { hasMounted } = useAppContext();
+
+  if (!hasMounted) {
+      return null;
+  }
+  
   return (
     <div className="flex flex-col items-center justify-center text-center pt-24">
       <motion.div

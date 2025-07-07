@@ -5,7 +5,6 @@ import { z } from 'zod'
 const urlSchema = z.string().url()
 
 function decodeHtmlEntities(text: string): string {
-    // This is a basic decoder for common HTML entities.
     return text.replace(/&amp;/g, '&')
                .replace(/&lt;/g, '<')
                .replace(/&gt;/g, '>')
@@ -15,6 +14,15 @@ function decodeHtmlEntities(text: string): string {
                .replace(/&#x2F;/g, "/");
 }
 
+const getFallbackTitle = (url: string) => {
+    try {
+        const hostname = new URL(url).hostname.replace(/^www\./, '');
+        const mainDomain = hostname.split('.')[0];
+        return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+    } catch (e) {
+        return '';
+    }
+}
 
 export async function getPageTitle(url: string): Promise<string> {
   const validation = urlSchema.safeParse(url)
@@ -32,7 +40,7 @@ export async function getPageTitle(url: string): Promise<string> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return getFallbackTitle(url);
     }
 
     const html = await response.text();
@@ -42,20 +50,10 @@ export async function getPageTitle(url: string): Promise<string> {
       return decodeHtmlEntities(match[1].trim());
     }
     
-    // Fallback if title tag is not found
-    const hostname = new URL(url).hostname.replace(/^www\./, '');
-    const mainDomain = hostname.split('.')[0];
-    return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
+    return getFallbackTitle(url);
 
   } catch (error) {
     console.warn(`Failed to fetch title for ${url}:`, error);
-    // Fallback if fetch fails for any reason (timeout, CORS on redirect, network error, etc.)
-    try {
-      const hostname = new URL(url).hostname.replace(/^www\./, '');
-      const mainDomain = hostname.split('.')[0];
-      return mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
-    } catch (e) {
-      return ''; 
-    }
+    return getFallbackTitle(url);
   }
 }

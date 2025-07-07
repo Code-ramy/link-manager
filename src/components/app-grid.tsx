@@ -9,6 +9,7 @@ import type { WebApp } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppIcon } from '@/components/app-icon';
+import { useAppContext } from '@/contexts/app-context';
 
 const containerVariants = {
   visible: { transition: { staggerChildren: 0.05 } },
@@ -53,16 +54,14 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
 };
 
 interface AppGridProps {
-  apps: WebApp[];
-  allApps: WebApp[];
-  setApps: (apps: WebApp[]) => void;
+  appsToRender: WebApp[];
   onEdit: (app: WebApp) => void;
   onDelete: (app: WebApp) => void;
-  hasMounted: boolean;
   currentFilter: string;
 }
 
-export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, currentFilter }: AppGridProps) {
+export function AppGrid({ appsToRender, onEdit, onDelete, currentFilter }: AppGridProps) {
+  const { apps: allApps, setApps, hasMounted } = useAppContext();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dndId = useId();
@@ -81,13 +80,8 @@ export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, 
   const handleAppDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-        const oldIndexInFiltered = apps.findIndex(app => app.id === active.id);
-        const newIndexInFiltered = apps.findIndex(app => app.id === over.id);
-        const activeApp = apps[oldIndexInFiltered];
-        const overApp = apps[newIndexInFiltered];
-        
-        const oldIndexInFull = allApps.findIndex(app => app.id === activeApp.id);
-        const newIndexInFull = allApps.findIndex(app => app.id === overApp.id);
+        const oldIndexInFull = allApps.findIndex(app => app.id === active.id);
+        const newIndexInFull = allApps.findIndex(app => app.id === over.id);
 
         if (oldIndexInFull !== -1 && newIndexInFull !== -1) {
             setApps(arrayMove(allApps, oldIndexInFull, newIndexInFull));
@@ -116,7 +110,7 @@ export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, 
   }
 
   return (
-    <main className={cn("pb-20 pt-12", isDragging && '[&_a]:pointer-events-none')}>
+    <div className={cn("pb-20 pt-12", isDragging && '[&_a]:pointer-events-none')}>
       <DndContext 
         id={dndId}
         sensors={sensors} 
@@ -125,7 +119,7 @@ export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, 
         onDragEnd={handleAppDragEnd}
         onDragCancel={handleAppDragCancel}
       >
-        <SortableContext items={apps.map(a => a.id)} strategy={rectSortingStrategy}>
+        <SortableContext items={appsToRender.map(a => a.id)} strategy={rectSortingStrategy}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentFilter}
@@ -135,7 +129,7 @@ export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, 
               animate="visible"
               exit="hidden"
             >
-              {apps.map((app) => (
+              {appsToRender.map((app) => (
                 <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
                   <AppIcon
                     app={app}
@@ -149,6 +143,6 @@ export function AppGrid({ apps, allApps, setApps, onEdit, onDelete, hasMounted, 
           </AnimatePresence>
         </SortableContext>
       </DndContext>
-    </main>
+    </div>
   );
 }

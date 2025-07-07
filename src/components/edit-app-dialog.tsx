@@ -6,8 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
 import * as LucideIcons from "lucide-react";
-import type { Category, WebApp } from '@/lib/types';
+import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
+import { useAppContext } from '@/contexts/app-context';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -35,13 +36,13 @@ const getFaviconUrl = (url: string) => {
 
 interface EditAppDialogProps {
   app?: WebApp | null;
-  categories: Category[];
-  onSave: (data: WebApp) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditAppDialog({ app, categories, onSave, open, onOpenChange }: EditAppDialogProps) {
+export function EditAppDialog({ app, open, onOpenChange }: EditAppDialogProps) {
+  const { categories, handleSaveApp } = useAppContext();
+  
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
     defaultValues: { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '', clip: true },
@@ -80,21 +81,9 @@ export function EditAppDialog({ app, categories, onSave, open, onOpenChange }: E
   useEffect(() => {
     const fetchTitle = async () => {
       if (urlToFetch && z.string().url().safeParse(urlToFetch).success && !form.getValues('name')) {
-        try {
-          const title = await getPageTitle(urlToFetch);
-          if (title) {
-            form.setValue('name', title, { shouldValidate: true });
-          }
-        } catch (error) {
-          console.warn("Could not fetch page title from server:", error);
-          try {
-            const hostname = new URL(urlToFetch).hostname.replace(/^www\./, '');
-            const mainDomain = hostname.split('.')[0];
-            const fallbackTitle = mainDomain.charAt(0).toUpperCase() + mainDomain.slice(1);
-            if (fallbackTitle) {
-              form.setValue('name', fallbackTitle, { shouldValidate: true });
-            }
-          } catch(e) { /* Silently fail */ }
+        const title = await getPageTitle(urlToFetch);
+        if (title) {
+          form.setValue('name', title, { shouldValidate: true });
         }
       }
     };
@@ -115,7 +104,7 @@ export function EditAppDialog({ app, categories, onSave, open, onOpenChange }: E
   };
 
   const onSubmit = (data: z.infer<typeof appSchema>) => {
-    onSave({ ...data, id: app?.id || crypto.randomUUID() });
+    handleSaveApp({ ...data, id: app?.id || crypto.randomUUID() });
     onOpenChange(false);
   };
 
