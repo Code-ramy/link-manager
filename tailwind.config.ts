@@ -14,8 +14,8 @@ export default {
         base: '1.025rem',
       },
       fontFamily: {
-        body: ['"Inter"', 'sans-serif'],
-        headline: ['"Inter"', 'sans-serif'],
+        body: ['"Poppins"', 'sans-serif'],
+        headline: ['"Poppins"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
