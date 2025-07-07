@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { WebApp } from '@/lib/types';
@@ -47,7 +47,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div variants={itemVariants} className={cn(isDragging ? 'opacity-0' : '')}>
+      <motion.div variants={itemVariants}>
         {children}
       </motion.div>
     </div>
@@ -64,10 +64,10 @@ interface AppGridProps {
 
 export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
   const { apps: allApps, setApps, hasMounted } = useAppContext();
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const dndId = useId();
 
-  const isDragging = !!activeId;
+  const isDragging = !!draggingId;
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
@@ -76,7 +76,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   }));
 
   const handleAppDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    setDraggingId(event.active.id as string);
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
@@ -89,11 +89,11 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
             setApps(arrayMove(allApps, oldIndexInFull, newIndexInFull));
         }
     }
-    setActiveId(null);
+    setDraggingId(null);
   };
   
   const handleAppDragCancel = () => {
-    setActiveId(null);
+    setDraggingId(null);
   }
 
   if (!hasMounted) {
@@ -134,28 +134,18 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
               exit="hidden"
             >
               {appsToRender.map((app) => (
-                <SortableItem key={app.id} id={app.id} isDragging={activeId === app.id}>
+                <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
                   <AppIcon
                     app={app}
                     onEdit={() => onEdit(app)}
                     onDelete={() => onDelete(app)}
-                    isDragging={false}
+                    isDragging={draggingId === app.id}
                   />
                 </SortableItem>
               ))}
             </motion.div>
           </AnimatePresence>
         </SortableContext>
-        <DragOverlay>
-            {activeId ? (
-                <AppIcon 
-                    app={allApps.find(app => app.id === activeId)!} 
-                    onEdit={() => {}} 
-                    onDelete={() => {}} 
-                    isDragging={true}
-                />
-            ) : null}
-        </DragOverlay>
       </DndContext>
     </div>
   );
