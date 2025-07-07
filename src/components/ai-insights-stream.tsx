@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useState } from 'react';
@@ -83,20 +84,20 @@ export function AiInsightsStream() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium" onClick={() => importFileInputRef.current?.click()}>
-              <LucideIcons.Upload className="mr-2 h-4 w-4" />
+            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={() => importFileInputRef.current?.click()}>
+              <LucideIcons.Upload className="h-4 w-4" />
               Import
             </Button>
-            <Button variant="outline" className="bg-zinc-700 border-zinc-600 text-zinc-200 hover:bg-zinc-600 hover:text-white text-sm font-medium" onClick={handleExport}>
-              <LucideIcons.Download className="mr-2 h-4 w-4" />
+            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={handleExport}>
+              <LucideIcons.Download className="h-4 w-4" />
               Export
             </Button>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm" onClick={() => setIsManageCategoriesOpen(true)}>
-              <LucideIcons.Settings className="mr-2 h-4 w-4" />
+            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={() => setIsManageCategoriesOpen(true)}>
+              <LucideIcons.Settings className="h-4 w-4" />
               Manage Categories
             </Button>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm" onClick={handleOpenAddDialog}>
-              <LucideIcons.Plus className="mr-2 h-4 w-4" />
+            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={handleOpenAddDialog}>
+              <LucideIcons.Plus className="h-4 w-4" />
               Add App
             </Button>
           </div>
