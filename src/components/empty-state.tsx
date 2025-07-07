@@ -41,11 +41,11 @@ export function EmptyState({ onAddApp, onAddCategory }: EmptyStateProps) {
         transition={{ delay: 0.5, duration: 0.5 }}
         className="flex gap-4"
       >
-        <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold" onClick={onAddApp}>
+        <Button size="lg" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={onAddApp}>
           <Plus className="mr-2 h-5 w-5" />
           Add App
         </Button>
-        <Button size="lg" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={onAddCategory}>
+        <Button size="lg" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={onAddCategory}>
           <FolderPlus className="mr-2 h-5 w-5" />
           Add Category
         </Button>
