@@ -72,8 +72,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
   } = useSortable({
     id,
     transition: {
-      duration: 250,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+      duration: 350,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     },
   });
 
