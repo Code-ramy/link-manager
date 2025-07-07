@@ -84,19 +84,19 @@ export function AiInsightsStream() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={() => importFileInputRef.current?.click()}>
+            <Button variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={() => importFileInputRef.current?.click()}>
               <LucideIcons.Upload className="h-4 w-4" />
               Import
             </Button>
-            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={handleExport}>
+            <Button variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={handleExport}>
               <LucideIcons.Download className="h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={() => setIsManageCategoriesOpen(true)}>
+            <Button className="rounded-full" onClick={() => setIsManageCategoriesOpen(true)}>
               <LucideIcons.Settings className="h-4 w-4" />
               Manage Categories
             </Button>
-            <Button size="sm" variant="outline" className="text-white bg-white/10 border-white/20 hover:bg-white/20 rounded-full" onClick={handleOpenAddDialog}>
+            <Button className="rounded-full" onClick={handleOpenAddDialog}>
               <LucideIcons.Plus className="h-4 w-4" />
               Add App
             </Button>
