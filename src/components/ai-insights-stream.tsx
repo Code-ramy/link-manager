@@ -781,7 +781,7 @@ export function AiInsightsStream({ initialApps, initialCategories }: { initialAp
       </header>
       <div id="main-content" className="container mx-auto p-4 sm:p-6 lg:p-8 pt-28">
 
-        <div className="flex justify-center mt-16 mb-8 min-h-[56px] items-center">
+        <div className="flex justify-center mt-24 mb-8 min-h-[56px] items-center">
           {categories.length > 0 && (
             <div className="inline-flex max-w-3xl">
               <nav
