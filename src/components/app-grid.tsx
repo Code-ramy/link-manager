@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useId, useState } from 'react';
@@ -98,8 +99,8 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
 
   if (!hasMounted) {
     return (
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center">
-        {Array.from({ length: 12 }).map((_, i) => (
+      <div className="grid grid-cols-7 gap-4 justify-items-center">
+        {Array.from({ length: 14 }).map((_, i) => (
           <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
             <Skeleton className="w-16 h-16 rounded-lg !duration-1000" />
             <Skeleton className="h-4 w-20 rounded-md !duration-1000" />
@@ -127,7 +128,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
           <AnimatePresence mode="wait">
             <motion.div
               key={currentFilter}
-              className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-x-4 gap-y-8 justify-items-center"
+              className="grid grid-cols-7 gap-4 justify-items-center"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
