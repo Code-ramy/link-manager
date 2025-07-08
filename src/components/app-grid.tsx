@@ -99,7 +99,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
 
   if (!hasMounted) {
     return (
-      <div className="grid grid-cols-7 gap-4 justify-items-center">
+      <div className="grid grid-cols-7 gap-8 justify-items-center">
         {Array.from({ length: 14 }).map((_, i) => (
           <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
             <Skeleton className="w-16 h-16 rounded-lg !duration-1000" />
@@ -128,7 +128,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
           <AnimatePresence mode="wait">
             <motion.div
               key={currentFilter}
-              className="grid grid-cols-7 gap-4 justify-items-center"
+              className="grid grid-cols-7 gap-8 justify-items-center"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
