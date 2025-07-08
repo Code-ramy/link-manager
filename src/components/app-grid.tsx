@@ -115,7 +115,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   }
 
   return (
-    <div className={cn("pb-20 pt-12", isDragging && '[&_a]:pointer-events-none')}>
+    <div className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
       <DndContext 
         id={dndId}
         sensors={sensors} 
