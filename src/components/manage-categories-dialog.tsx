@@ -179,7 +179,11 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
             <h4 className="font-bold">{editingCategory ? 'Edit Category' : 'Add New Category'}</h4>
             <div className="flex flex-col gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem><FormLabel>Category Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2"><LucideIcons.Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )} />
                 <div className="space-y-4">
                   <FormItem>

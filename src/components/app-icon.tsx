@@ -9,13 +9,13 @@ import { Icon } from './icon';
 export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
   return (
     <div className="group flex flex-row items-start gap-0">
-      <div className="flex flex-col items-center gap-2 text-center w-20">
+      <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
         <div className="w-16 h-16">
           <a
             href={app.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full h-full"
+            className="block w-full h-full transition-transform duration-150 active:scale-95"
             draggable="false"
           >
             <div
