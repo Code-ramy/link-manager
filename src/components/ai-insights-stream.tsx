@@ -3,7 +3,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useAppContext } from '@/contexts/app-context';
-import * as LucideIcons from "lucide-react";
+import { Upload, Download, Settings, Plus } from "lucide-react";
 import type { Category, WebApp } from '@/lib/types';
 
 import { AppGrid } from '@/components/app-grid';
@@ -85,19 +85,19 @@ export function AiInsightsStream() {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
-              <LucideIcons.Upload className="h-4 w-4" />
+              <Upload className="h-4 w-4" />
               Import
             </Button>
             <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
-              <LucideIcons.Download className="h-4 w-4" />
+              <Download className="h-4 w-4" />
               Export
             </Button>
             <Button className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
-              <LucideIcons.Settings className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
               Manage Categories
             </Button>
             <Button className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={handleOpenAddDialog}>
-              <LucideIcons.Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" />
               Add App
             </Button>
           </div>

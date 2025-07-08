@@ -1,8 +1,9 @@
+
 "use client";
 
 import { cn } from '@/lib/utils';
 import type { WebApp } from '@/lib/types';
-import * as LucideIcons from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from './ui/button';
 import { Icon } from './icon';
 
@@ -48,10 +49,10 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, on
         "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-1 -ml-2"
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
-          <LucideIcons.Pencil className="w-4 h-4" />
+          <Pencil className="w-4 h-4" />
         </Button>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={onDelete}>
-          <LucideIcons.Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
     </div>

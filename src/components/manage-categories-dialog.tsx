@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import * as LucideIcons from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -154,7 +155,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                     )}
                   >
                     <div className="flex items-center gap-3 flex-grow min-w-0">
-                      <LucideIcons.GripVertical className="w-5 h-5 text-muted-foreground cursor-grab flex-shrink-0"/>
+                      <GripVertical className="w-5 h-5 text-muted-foreground cursor-grab flex-shrink-0"/>
                       <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
                         <Icon name={c.icon} className="w-5 h-5" />
                       </div>
@@ -162,10 +163,10 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pl-2 flex-shrink-0">
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => handleEditClick(c)}>
-                        <LucideIcons.Pencil className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-red-500/20 hover:text-red-400" onClick={() => handleDeleteCategory(c.id)}>
-                        <LucideIcons.Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -180,7 +181,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
             <div className="flex flex-col gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-2"><LucideIcons.Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
+                    <FormLabel className="flex items-center gap-2"><Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -192,10 +193,10 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                           {iconPreview ? (
                               <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
                           ) : (
-                              <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
+                              <ImageIcon className="w-7 h-7 text-muted-foreground" />
                           )}
                       </div>
-                      <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><LucideIcons.Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
+                      <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
                       <Button size="sm" type="submit" className="w-24">{editingCategory ? 'Update' : 'Add'}</Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />

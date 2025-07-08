@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -5,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import * as LucideIcons from "lucide-react";
+import { ImageIcon, Upload, Package, Link2, FolderKanban, Scissors } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
 import { useAppContext } from '@/contexts/app-context';
@@ -123,11 +124,11 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
                 {iconPreview ? (
                   <img src={iconPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <LucideIcons.ImageIcon className="w-7 h-7 text-muted-foreground" />
+                  <ImageIcon className="w-7 h-7 text-muted-foreground" />
                 )}
               </div>
               <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20 text-sm h-9">
-                <LucideIcons.Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-4 w-4" />
                 Upload Image
               </Button>
               <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
@@ -135,21 +136,21 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
             <div className="grid gap-4">
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><LucideIcons.Package className="w-4 h-4 text-muted-foreground"/>App Name</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><Package className="w-4 h-4 text-muted-foreground"/>App Name</FormLabel>
                   <FormControl><Input placeholder="e.g., Google" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="url" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><LucideIcons.Link2 className="w-4 h-4 text-muted-foreground"/>URL</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><Link2 className="w-4 h-4 text-muted-foreground"/>URL</FormLabel>
                   <FormControl><Input placeholder="https://google.com" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="categoryId" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2"><LucideIcons.FolderKanban className="w-4 h-4 text-muted-foreground"/>Category</FormLabel>
+                  <FormLabel className="flex items-center gap-2"><FolderKanban className="w-4 h-4 text-muted-foreground"/>Category</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                     <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
@@ -160,7 +161,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
               <FormField control={form.control} name="clip" render={({ field }) => (
                 <div className="flex flex-row items-center justify-between rounded-lg border border-white/20 bg-white/[.05] p-3 shadow-sm mt-1 hover:bg-white/10 transition-colors">
                   <Label htmlFor="clip-switch" className="flex items-center gap-2 cursor-pointer">
-                    <LucideIcons.Scissors className="w-4 h-4 text-muted-foreground"/>
+                    <Scissors className="w-4 h-4 text-muted-foreground"/>
                     Clip Edges
                   </Label>
                   <Switch id="clip-switch" checked={field.value} onCheckedChange={field.onChange} />
