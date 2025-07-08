@@ -72,7 +72,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
   }
 
   return (
-    <div className="flex justify-center mb-12 min-h-[56px] items-center">
+    <div className="flex justify-center mb-16 min-h-[56px] items-center">
       <div className="inline-flex max-w-3xl">
         <nav
           ref={filterNavRef}

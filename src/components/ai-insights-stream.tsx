@@ -104,7 +104,7 @@ export function AiInsightsStream() {
         </div>
       </header>
 
-      <main id="main-content" className="w-full max-w-7xl mx-auto px-4 pt-28">
+      <main id="main-content" className="w-full max-w-7xl mx-auto px-4 pt-32">
         <CategoryFilter 
             currentFilter={currentFilter}
             onFilterChange={setCurrentFilter}
