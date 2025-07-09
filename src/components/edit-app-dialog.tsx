@@ -55,21 +55,19 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // This effect handles resetting the form and icon when the `app` prop changes.
-    // It's the primary mechanism to ensure the correct data is loaded for editing.
-    if (open) {
-      if (app) {
-        // We have an app to edit. Reset the form with its data.
-        form.reset({ ...app, clip: app.clip ?? true });
-        setIconPreview(app.icon);
-      } else {
-        // We are adding a new app. Reset to default values.
-        const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
-        form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
-        setIconPreview('');
-      }
+    // This effect is now the single source of truth for resetting the form.
+    // It runs whenever the `app` prop changes.
+    if (app) {
+      // Editing an existing app: reset form with app data.
+      form.reset({ ...app, clip: app.clip ?? true });
+      setIconPreview(app.icon);
+    } else {
+      // Adding a new app: reset to default values.
+      const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
+      form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
+      setIconPreview('');
     }
-  }, [app, open, categories, defaultCategoryId, form]);
+  }, [app, categories, defaultCategoryId, form]);
 
 
   useEffect(() => {
