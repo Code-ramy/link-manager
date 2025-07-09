@@ -14,14 +14,23 @@ import { useAppContext } from '@/contexts/app-context';
 import { CategoryEmptyState } from './category-empty-state';
 
 const containerVariants = {
-  visible: { transition: { staggerChildren: 0.05 } },
-  hidden: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
+  visible: {
+    transition: { staggerChildren: 0.02, delayChildren: 0.05 },
+  },
+  hidden: {
+    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+  },
 };
 
 const itemVariants = {
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.6, -0.05, 0.01, 0.99] } },
-    hidden: { opacity: 0, y: 20, transition: { duration: 0.2 } },
-    exit: { opacity: 0, scale: 0.6, y: 40, transition: { duration: 0.4, ease: "circOut" } }
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 150, damping: 15, mass: 0.5 },
+  },
+  hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2, ease: 'easeIn' } },
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.15, ease: 'easeOut' } }
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
@@ -101,7 +110,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
     return (
       <div className="grid grid-cols-7 gap-12 justify-items-center">
         {Array.from({ length: 14 }).map((_, i) => (
-          <div key={i} className="flex flex-col items-center gap-2 text-center w-20">
+          <div key={i} className="flex flex-col items-center gap-2 text-center w-24">
             <Skeleton className="w-16 h-16 rounded-lg !duration-1000" />
             <Skeleton className="h-4 w-20 rounded-md !duration-1000" />
           </div>
