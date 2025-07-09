@@ -65,7 +65,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
         setIconPreview('');
       }
     }
-  }, [app, open, categories, defaultCategoryId, form.reset]);
+  }, [app, open, categories, defaultCategoryId, form]);
 
   useEffect(() => {
     const currentUrl = form.getValues('url');
