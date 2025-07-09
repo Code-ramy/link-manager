@@ -190,15 +190,13 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
 export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {open && (
-        <EditAppDialogContent 
-          key={app?.id || 'new-app'}
-          app={app} 
-          open={open}
-          onOpenChange={onOpenChange}
-          defaultCategoryId={defaultCategoryId} 
-        />
-      )}
+      <EditAppDialogContent 
+        key={app?.id || 'new-app'}
+        app={app} 
+        open={open}
+        onOpenChange={onOpenChange}
+        defaultCategoryId={defaultCategoryId} 
+      />
     </Dialog>
   );
 }
