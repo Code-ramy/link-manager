@@ -65,7 +65,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
         setIconPreview('');
       }
     }
-  }, [app, open, categories, defaultCategoryId, form]);
+  }, [app, open, categories, defaultCategoryId, form.reset]);
 
   useEffect(() => {
     const currentUrl = form.getValues('url');
@@ -118,7 +118,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
           <DialogTitle className="font-headline text-lg text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2" key={app?.id || 'new-app'}>
             <div className="flex flex-col items-center gap-4 mb-2">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
