@@ -47,7 +47,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
-    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: categories[0]?.id || '', clip: true },
+    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: '', clip: true },
   });
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
@@ -55,27 +55,22 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // This effect is now the single source of truth for resetting the form.
-    // It runs whenever the `app` prop changes.
     if (app) {
-      // Editing an existing app: reset form with app data.
       form.reset({ ...app, clip: app.clip ?? true });
       setIconPreview(app.icon);
     } else {
-      // Adding a new app: reset to default values.
       const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
       form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
       setIconPreview('');
     }
-  }, [app, categories, defaultCategoryId, form]);
+  }, [app, open, categories, defaultCategoryId, form]);
 
 
   useEffect(() => {
     const currentUrl = form.getValues('url');
     if (urlToFetch && z.string().url().safeParse(urlToFetch).success) {
       const newFavicon = getFaviconUrl(urlToFetch);
-      // Only set favicon if it's a new URL, and the user hasn't uploaded a custom one
-      if (newFavicon && (!app || urlToFetch !== app.url) && form.getValues('icon').startsWith('http')) {
+      if (newFavicon && (!app || urlToFetch !== app.url)) {
         setIconPreview(newFavicon);
         form.setValue('icon', newFavicon, { shouldValidate: true });
       }
