@@ -1,8 +1,10 @@
+
 "use client";
 
 import type { WebApp } from '@/lib/types';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trash2, X } from 'lucide-react';
 
 interface DeleteAppDialogProps {
   appToDelete: WebApp | null;
@@ -21,8 +23,14 @@ export function DeleteAppDialog({ appToDelete, onClose, onConfirm }: DeleteAppDi
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="pt-4 sm:justify-center gap-4">
-          <Button variant="outline" onClick={onClose} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
-          <Button variant="destructive" onClick={onConfirm} className="w-full">Delete</Button>
+          <Button variant="outline" onClick={onClose} className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">
+            <X className="mr-2 h-4 w-4" />
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onConfirm} className="w-full">
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

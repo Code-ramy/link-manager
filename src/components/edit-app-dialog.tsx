@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors } from "lucide-react";
+import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors, Save, X } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
 import { useAppContext } from '@/contexts/app-context';
@@ -56,8 +56,6 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
   const [iconPreview, setIconPreview] = useState(form.getValues('icon'));
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
-  // This is the key change to fix the persistent state issue.
-  // It forces a full re-render of the form content when the app prop changes.
   useEffect(() => {
     if (app) {
       form.reset({ ...app, clip: app.clip ?? true });
@@ -74,7 +72,6 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
 
     const fetchTitle = async () => {
       const currentName = form.getValues('name');
-      // Only fetch title if name is empty, or if the URL changed from the initial app URL
       if (!currentName || (app && urlToFetch !== app.url)) {
         const title = await getPageTitle(urlToFetch);
         if (title) {
@@ -84,7 +81,6 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
     };
     
     const fetchFavicon = () => {
-      // Only fetch favicon automatically if it's a new app or if the URL has changed from the initial app URL
       if (!app || urlToFetch !== app.url) {
         const newFavicon = getFaviconUrl(urlToFetch);
         if (newFavicon) {
@@ -172,9 +168,17 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
               </div>
             )} />
           </div>
-          <DialogFooter className="pt-4 mt-4 border-t border-white/10 gap-4 sm:justify-center">
-            <Button asChild variant="outline" className="w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white"><DialogClose>Cancel</DialogClose></Button>
-            <Button type="submit" className="w-28 bg-primary hover:bg-primary/90 text-white">Save</Button>
+          <DialogFooter className="pt-4 mt-4 border-t border-white/10 gap-2 sm:justify-center">
+            <Button asChild variant="outline" className="w-full sm:w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white">
+              <DialogClose>
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </DialogClose>
+            </Button>
+            <Button type="submit" className="w-full sm:w-28 bg-primary hover:bg-primary/90 text-white">
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </Button>
           </DialogFooter>
         </form>
       </Form>

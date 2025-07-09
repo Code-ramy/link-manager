@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle } from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -65,8 +65,6 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     if (open) {
       setLocalCategories(JSON.parse(JSON.stringify(categories)));
     } else {
-      // When the dialog is closed by any means, reset all component state.
-      // This ensures a clean slate the next time it opens.
       setEditingCategory(null);
       form.reset({ name: '', icon: '' });
       setIconPreview('');
@@ -98,14 +96,12 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
     } else {
       setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
     }
-    // Explicitly reset the form after saving to prepare for adding a new category
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
   };
 
   const handleDeleteCategory = (id: string) => {
-    // If the category being deleted is the one being edited, clear the form.
     if (editingCategory?.id === id) {
       setEditingCategory(null);
       form.reset({ name: '', icon: '' });
@@ -209,9 +205,15 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
             </div>
           </form>
         </Form>
-        <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-4">
-            <Button size="sm" onClick={handleCancel} variant="outline" className="w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white">Cancel</Button>
-            <Button size="sm" onClick={handleSaveChanges} className="w-28">Save</Button>
+        <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-2">
+            <Button size="sm" onClick={handleCancel} variant="outline" className="w-full sm:w-auto bg-white/10 border-white/20 hover:bg-white/20 text-white">
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSaveChanges} className="w-full sm:w-auto">
+              <Save className="mr-2 h-4 w-4" />
+              Save Changes
+            </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
