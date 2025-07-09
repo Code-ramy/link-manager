@@ -194,7 +194,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                       </div>
                       <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
                       <Button size="sm" type="submit" className="w-24">
-                        {!editingCategory && <PlusCircle className="mr-2 h-4 w-4" />}
+                        <PlusCircle className="mr-2 h-4 w-4" />
                         {editingCategory ? 'Update' : 'Add'}
                       </Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
@@ -206,13 +206,13 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
           </form>
         </Form>
         <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-2">
-            <Button size="sm" onClick={handleCancel} variant="outline" className="w-full sm:w-auto bg-white/10 border-white/20 hover:bg-white/20 text-white">
+            <Button size="sm" onClick={handleCancel} variant="outline" className="w-full sm:w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white">
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSaveChanges} className="w-full sm:w-auto">
+            <Button size="sm" onClick={handleSaveChanges} className="w-full sm:w-28">
               <Save className="mr-2 h-4 w-4" />
-              Save Changes
+              Save
             </Button>
         </DialogFooter>
       </DialogContent>
