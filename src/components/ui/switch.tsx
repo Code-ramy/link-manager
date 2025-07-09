@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -19,7 +20,7 @@ const Switch = React.forwardRef<
   >
     <SwitchPrimitives.Thumb
       className={cn(
-        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-all duration-300 ease-out data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0 data-[state=checked]:scale-100 data-[state=unchecked]:scale-100 motion-safe:data-[state=checked]:animate-in motion-safe:data-[state=checked]:bounce-in-left motion-safe:data-[state=checked]:duration-500"
+        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
       )}
     />
   </SwitchPrimitives.Root>
