@@ -60,12 +60,12 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
         form.reset({ ...app, clip: app.clip ?? true });
         setIconPreview(app.icon);
       } else {
-        const defaultCat = defaultCategoryId || categories[0]?.id || '';
+        const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
         form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
         setIconPreview('');
       }
     }
-  }, [app, open, categories, form, defaultCategoryId]);
+  }, [app, open, categories, defaultCategoryId, form]);
 
   useEffect(() => {
     const currentUrl = form.getValues('url');
