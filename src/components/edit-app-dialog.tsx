@@ -55,11 +55,15 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // This effect handles resetting the form and icon when the `app` prop changes.
+    // It's the primary mechanism to ensure the correct data is loaded for editing.
     if (open) {
       if (app) {
+        // We have an app to edit. Reset the form with its data.
         form.reset({ ...app, clip: app.clip ?? true });
         setIconPreview(app.icon);
       } else {
+        // We are adding a new app. Reset to default values.
         const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
         form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
         setIconPreview('');
@@ -67,11 +71,13 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
     }
   }, [app, open, categories, defaultCategoryId, form]);
 
+
   useEffect(() => {
     const currentUrl = form.getValues('url');
     if (urlToFetch && z.string().url().safeParse(urlToFetch).success) {
       const newFavicon = getFaviconUrl(urlToFetch);
-      if (newFavicon && (!app || urlToFetch !== app.url)) {
+      // Only set favicon if it's a new URL, and the user hasn't uploaded a custom one
+      if (newFavicon && (!app || urlToFetch !== app.url) && form.getValues('icon').startsWith('http')) {
         setIconPreview(newFavicon);
         form.setValue('icon', newFavicon, { shouldValidate: true });
       }
