@@ -55,42 +55,47 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (app) {
-      form.reset({ ...app, clip: app.clip ?? true });
-      setIconPreview(app.icon);
-    } else {
-      const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
-      form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
-      setIconPreview('');
+    if (open) {
+      if (app) {
+        form.reset({ ...app, clip: app.clip ?? true });
+        setIconPreview(app.icon);
+      } else {
+        const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
+        form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
+        setIconPreview('');
+      }
     }
   }, [app, open, categories, defaultCategoryId, form]);
 
 
   useEffect(() => {
-    const currentUrl = form.getValues('url');
-    if (urlToFetch && z.string().url().safeParse(urlToFetch).success) {
-      const newFavicon = getFaviconUrl(urlToFetch);
-      if (newFavicon && (!app || urlToFetch !== app.url)) {
-        setIconPreview(newFavicon);
-        form.setValue('icon', newFavicon, { shouldValidate: true });
-      }
-    } else if (!currentUrl && !app) {
-       setIconPreview('');
-       form.setValue('icon', 'Globe');
-    }
-  }, [urlToFetch, app, form]);
-
-  useEffect(() => {
-    const fetchTitle = async () => {
-      if (urlToFetch && z.string().url().safeParse(urlToFetch).success && !form.getValues('name')) {
-        const title = await getPageTitle(urlToFetch);
-        if (title) {
-          form.setValue('name', title, { shouldValidate: true });
+    if (!open) return;
+  
+    const validation = z.string().url().safeParse(urlToFetch);
+    if (validation.success) {
+      // Logic for fetching title and favicon based on URL input
+      const fetchTitle = async () => {
+        if (!form.getValues('name') || (app && urlToFetch !== app.url)) {
+          const title = await getPageTitle(urlToFetch);
+          if (title) {
+            form.setValue('name', title, { shouldValidate: true, shouldDirty: true });
+          }
         }
-      }
-    };
-    fetchTitle();
-  }, [urlToFetch, form]);
+      };
+      
+      const fetchFavicon = () => {
+        // Only fetch favicon automatically if it's a new app or if the URL has changed from the original.
+        if (!app || urlToFetch !== app.url) {
+          const newFavicon = getFaviconUrl(urlToFetch);
+          setIconPreview(newFavicon);
+          form.setValue('icon', newFavicon, { shouldValidate: true, shouldDirty: true });
+        }
+      };
+
+      fetchTitle();
+      fetchFavicon();
+    }
+  }, [urlToFetch, app, open, form]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
