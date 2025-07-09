@@ -47,28 +47,17 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
   
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
-    defaultValues: { name: '', url: '', icon: 'Globe', categoryId: '', clip: true },
+    defaultValues: app 
+      ? { ...app, clip: app.clip ?? true }
+      : { name: '', url: '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true },
   });
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
-  const [iconPreview, setIconPreview] = useState('');
+  const [iconPreview, setIconPreview] = useState(app?.icon || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (open) {
-      if (app) {
-        form.reset({ ...app, clip: app.clip ?? true });
-        setIconPreview(app.icon);
-      } else {
-        const defaultCat = defaultCategoryId || (categories.length > 0 ? categories[0].id : '');
-        form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCat, clip: true });
-        setIconPreview('');
-      }
-    }
-  }, [app, open, categories, defaultCategoryId, form]);
-
-
-  useEffect(() => {
+    // This effect runs when the user types in the URL field.
     if (!open) return;
   
     const validation = z.string().url().safeParse(urlToFetch);
@@ -117,12 +106,15 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm modal-card border-white/20">
+      <DialogContent 
+        key={app?.id || 'new-app'} 
+        className="sm:max-w-sm modal-card border-white/20"
+      >
         <DialogHeader>
           <DialogTitle className="font-headline text-lg text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2" key={app?.id || 'new-app'}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
             <div className="flex flex-col items-center gap-4 mb-2">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
                 {iconPreview ? (
