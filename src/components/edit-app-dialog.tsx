@@ -1,12 +1,12 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import { ImageIcon, Upload, Package, Link2, FolderKanban, Scissors } from "lucide-react";
+import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
 import { useAppContext } from '@/contexts/app-context';
@@ -54,11 +54,19 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
   const [iconPreview, setIconPreview] = useState(form.getValues('icon'));
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // This is the key change to fix the persistent state issue.
+  // It forces a full re-render of the form content when the app prop changes.
   useEffect(() => {
-    setIconPreview(form.getValues('icon'));
-  }, [app, form]);
+    if (app) {
+      form.reset({ ...app, clip: app.clip ?? true });
+      setIconPreview(app.icon);
+    } else {
+      form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true });
+      setIconPreview('Globe');
+    }
+  }, [app, form, defaultCategoryId, categories]);
 
   useEffect(() => {
     const validation = z.string().url().safeParse(urlToFetch);
@@ -76,7 +84,7 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
     };
     
     const fetchFavicon = () => {
-      // Only fetch favicon automatically if it's a new app or if the URL has changed
+      // Only fetch favicon automatically if it's a new app or if the URL has changed from the initial app URL
       if (!app || urlToFetch !== app.url) {
         const newFavicon = getFaviconUrl(urlToFetch);
         if (newFavicon) {
@@ -132,7 +140,7 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
           <div className="grid gap-4">
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-2"><Package className="w-4 h-4 text-muted-foreground"/>App Name</FormLabel>
+                <FormLabel className="flex items-center gap-2"><PenSquare className="w-4 h-4 text-muted-foreground"/>App Name</FormLabel>
                 <FormControl><Input placeholder="e.g., Google" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>

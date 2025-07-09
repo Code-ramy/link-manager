@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload } from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -197,7 +197,10 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
                           )}
                       </div>
                       <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
-                      <Button size="sm" type="submit" className="w-24">{editingCategory ? 'Update' : 'Add'}</Button>
+                      <Button size="sm" type="submit" className="w-24">
+                        {!editingCategory && <PlusCircle className="mr-2 h-4 w-4" />}
+                        {editingCategory ? 'Update' : 'Add'}
+                      </Button>
                       <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                       <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
