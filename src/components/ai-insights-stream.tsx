@@ -81,11 +81,11 @@ export function AiInsightsStream() {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
-              <Upload className="h-4 w-4" />
+              <Download className="h-4 w-4" />
               Import
             </Button>
             <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
-              <Download className="h-4 w-4" />
+              <Upload className="h-4 w-4" />
               Export
             </Button>
             <Button className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
