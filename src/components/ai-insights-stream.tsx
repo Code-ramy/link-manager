@@ -105,7 +105,7 @@ export function AiInsightsStream() {
       </header>
 
       <main id="main-content" className="pt-20">
-        <div className="sticky top-20 z-20 pt-8 pb-4 bg-gradient-to-b from-[#100e20] via-[#100e20] to-transparent">
+        <div className="sticky top-20 z-20 pt-8 pb-4">
           <CategoryFilter 
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
