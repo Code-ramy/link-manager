@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
@@ -150,8 +150,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
-        <AnimatePresence>
-          {open && (
+        {open && (
             <>
               <DialogHeader className="pb-4 border-b border-white/10">
                 <motion.div custom={0} initial="hidden" animate="visible" variants={motionVariants}>
@@ -256,7 +255,6 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
               </DialogFooter>
             </>
           )}
-        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

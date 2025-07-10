@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors, Save, X, PlusSquare } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
@@ -129,8 +129,7 @@ function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: Ed
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm modal-card border-white/20">
-        <AnimatePresence>
-          {open && (
+        {open && (
             <>
               <DialogHeader className="pb-4 border-b border-white/10">
                 <motion.div custom={0} initial="hidden" animate="visible" variants={motionVariants}>
@@ -219,7 +218,6 @@ function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: Ed
               </Form>
             </>
           )}
-        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
