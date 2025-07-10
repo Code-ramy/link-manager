@@ -134,8 +134,4 @@
     mask-image: linear-gradient(to right, transparent, black 2rem, black calc(100% - 2rem), transparent);
   }
 
-  .content-mask {
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 10rem);
-    mask-image: linear-gradient(to bottom, transparent, black 10rem);
-  }
 }

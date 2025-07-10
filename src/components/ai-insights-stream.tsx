@@ -104,7 +104,7 @@ export function AiInsightsStream() {
         </div>
       </header>
 
-      <main id="main-content" className="pt-20 content-mask">
+      <main className="pt-20 flex flex-col h-screen">
         <div className="sticky top-20 z-20 pt-12 pb-4">
           <CategoryFilter 
               currentFilter={currentFilter}
@@ -112,18 +112,20 @@ export function AiInsightsStream() {
           />
         </div>
         
-        <div className="w-full max-w-7xl mx-auto px-4">
-            {hasMounted && apps.length === 0 && categories.length === 0 ? (
-              <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
-            ) : (
-              <AppGrid
-                appsToRender={appsToRender}
-                onEdit={handleOpenEditDialog}
-                onDelete={setAppToDelete}
-                onAddApp={handleOpenAddDialog}
-                currentFilter={currentFilter}
-              />
-            )}
+        <div className="flex-grow overflow-y-auto pt-2">
+            <div className="w-full max-w-7xl mx-auto px-4">
+                {hasMounted && apps.length === 0 && categories.length === 0 ? (
+                  <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
+                ) : (
+                  <AppGrid
+                    appsToRender={appsToRender}
+                    onEdit={handleOpenEditDialog}
+                    onDelete={setAppToDelete}
+                    onAddApp={handleOpenAddDialog}
+                    currentFilter={currentFilter}
+                  />
+                )}
+            </div>
         </div>
       </main>
 
