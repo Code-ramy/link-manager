@@ -50,7 +50,12 @@ export function AiInsightsStream() {
       .map((c) => c.id);
 
     if (deletedCategoryIds.includes(currentFilter)) {
-      setCurrentFilter('all');
+      const deletedCategoryIndex = categories.findIndex(c => c.id === currentFilter);
+      if (deletedCategoryIndex > 0) {
+        setCurrentFilter(categories[deletedCategoryIndex - 1].id);
+      } else {
+        setCurrentFilter('all');
+      }
     }
 
     setCategories(updatedCategories);
