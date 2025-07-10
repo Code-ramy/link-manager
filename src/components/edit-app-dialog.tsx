@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { generateId } from '@/lib/utils';
 
 const appSchema = z.object({
   name: z.string().min(1, "App name is required"),
@@ -122,7 +123,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
   };
 
   const onSubmit = (data: z.infer<typeof appSchema>) => {
-    handleSaveApp({ ...data, id: app?.id || crypto.randomUUID() });
+    handleSaveApp({ ...data, id: app?.id || generateId() });
     onOpenChange(false);
   };
 

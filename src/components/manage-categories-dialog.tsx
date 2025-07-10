@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn } from '@/lib/utils';
+import { cn, generateId } from '@/lib/utils';
 import { Icon } from './icon';
 
 const categorySchema = z.object({
@@ -102,7 +102,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     if (editingCategory) {
       setLocalCategories(localCategories.map(c => c.id === editingCategory.id ? { ...editingCategory, ...data } : c));
     } else {
-      setLocalCategories([...localCategories, { ...data, id: crypto.randomUUID() }]);
+      setLocalCategories([...localCategories, { ...data, id: generateId() }]);
     }
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
