@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors, Save, X, PlusSquare } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
@@ -56,7 +56,7 @@ interface EditAppDialogProps {
   defaultCategoryId?: string;
 }
 
-function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
+export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
   const { categories, handleSaveApp } = useAppContext();
   
   const form = useForm<z.infer<typeof appSchema>>({
@@ -78,7 +78,7 @@ function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: Ed
       form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true });
       setIconPreview('Globe');
     }
-  }, [app, form, defaultCategoryId, categories]);
+  }, [app, open, form, defaultCategoryId, categories]);
 
   useEffect(() => {
     const validation = z.string().url().safeParse(urlToFetch);
@@ -129,8 +129,13 @@ function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: Ed
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm modal-card border-white/20">
-        {open && (
-            <>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
               <DialogHeader className="pb-4 border-b border-white/10">
                 <motion.div custom={0} initial="hidden" animate="visible" variants={motionVariants}>
                   <DialogTitle className="font-headline text-xl text-white flex items-center gap-2">
@@ -216,21 +221,10 @@ function EditAppDialogContent({ app, open, onOpenChange, defaultCategoryId }: Ed
                   </DialogFooter>
                 </form>
               </Form>
-            </>
+            </motion.div>
           )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
-  );
-}
-
-export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
-  return (
-      <EditAppDialogContent 
-        key={app?.id || 'new-app'}
-        app={app} 
-        open={open}
-        onOpenChange={onOpenChange}
-        defaultCategoryId={defaultCategoryId} 
-      />
   );
 }
