@@ -114,7 +114,7 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
 
   return (
     <DialogContent className="sm:max-w-sm modal-card border-white/20">
-      <DialogHeader>
+      <DialogHeader className="pb-4 border-b border-white/10">
         <DialogTitle className="font-headline text-xl text-white flex items-center gap-2">
           {app ? <PenSquare className="w-5 h-5 text-blue-400" /> : <PlusSquare className="w-5 h-5 text-blue-400" />}
           {app ? 'Edit App' : 'Add App'}

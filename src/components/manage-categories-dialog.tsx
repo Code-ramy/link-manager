@@ -136,7 +136,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
-        <DialogHeader>
+        <DialogHeader className="pb-4 border-b border-white/10">
           <DialogTitle className="font-headline text-xl text-white flex items-center gap-2">
             <Settings2 className="w-5 h-5 text-blue-400" />
             Manage Categories
@@ -178,13 +178,15 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
-            <h4 className="font-headline text-lg font-bold flex items-center gap-2 text-white">
-              {editingCategory 
-                ? <><Pencil className="w-4 h-4 text-blue-400" />Edit Category</>
-                : <><PlusSquare className="w-4 h-4 text-blue-400" />Add New Category</>
-              }
-            </h4>
-            <div className="flex flex-col gap-4">
+            <div className="pb-4 border-b border-white/10">
+              <h4 className="font-headline text-lg font-bold flex items-center gap-2 text-white">
+                {editingCategory 
+                  ? <><Pencil className="w-4 h-4 text-blue-400" />Edit Category</>
+                  : <><PlusSquare className="w-4 h-4 text-blue-400" />Add New Category</>
+                }
+              </h4>
+            </div>
+            <div className="flex flex-col gap-4 pt-2">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2"><Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
