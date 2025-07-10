@@ -104,23 +104,27 @@ export function AiInsightsStream() {
         </div>
       </header>
 
-      <main id="main-content" className="w-full max-w-7xl mx-auto px-4 pt-32">
-        <CategoryFilter 
-            currentFilter={currentFilter}
-            onFilterChange={setCurrentFilter}
-        />
-        
-        {hasMounted && apps.length === 0 && categories.length === 0 ? (
-          <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
-        ) : (
-          <AppGrid
-            appsToRender={appsToRender}
-            onEdit={handleOpenEditDialog}
-            onDelete={setAppToDelete}
-            onAddApp={handleOpenAddDialog}
-            currentFilter={currentFilter}
+      <main id="main-content" className="pt-20">
+        <div className="sticky top-20 z-20 pt-8 pb-4 bg-gradient-to-b from-[#100e20] via-[#100e20] to-transparent">
+          <CategoryFilter 
+              currentFilter={currentFilter}
+              onFilterChange={setCurrentFilter}
           />
-        )}
+        </div>
+        
+        <div className="w-full max-w-7xl mx-auto px-4 content-mask -mt-16 pt-16">
+            {hasMounted && apps.length === 0 && categories.length === 0 ? (
+              <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
+            ) : (
+              <AppGrid
+                appsToRender={appsToRender}
+                onEdit={handleOpenEditDialog}
+                onDelete={setAppToDelete}
+                onAddApp={handleOpenAddDialog}
+                currentFilter={currentFilter}
+              />
+            )}
+        </div>
       </main>
 
       <EditAppDialog
