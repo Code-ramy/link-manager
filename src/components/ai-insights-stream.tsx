@@ -105,14 +105,14 @@ export function AiInsightsStream() {
       </header>
 
       <main id="main-content" className="pt-20">
-        <div className="sticky top-20 z-20 pt-8 pb-4">
+        <div className="sticky top-20 z-20 pt-12 pb-4">
           <CategoryFilter 
               currentFilter={currentFilter}
               onFilterChange={setCurrentFilter}
           />
         </div>
         
-        <div className="w-full max-w-7xl mx-auto px-4 content-mask -mt-16 pt-16">
+        <div className="w-full max-w-7xl mx-auto px-4 content-mask -mt-20 pt-16">
             {hasMounted && apps.length === 0 && categories.length === 0 ? (
               <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
             ) : (
