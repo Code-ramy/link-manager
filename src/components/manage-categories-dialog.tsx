@@ -178,7 +178,7 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
-            <h4 className="font-headline text-lg font-bold flex items-center gap-2">
+            <h4 className="font-headline text-lg font-bold flex items-center gap-2 text-white">
               {editingCategory 
                 ? <><Pencil className="w-4 h-4 text-blue-400" />Edit Category</>
                 : <><PlusSquare className="w-4 h-4 text-blue-400" />Add New Category</>
