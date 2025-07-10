@@ -75,6 +75,7 @@ interface AppGridProps {
 export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
   const { apps: allApps, setApps, hasMounted } = useAppContext();
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [droppedId, setDroppedId] = useState<string | null>(null);
   const dndId = useId();
 
   const isDragging = !!draggingId;
@@ -96,7 +97,10 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
         const newIndexInFull = allApps.findIndex(app => app.id === over.id);
 
         if (oldIndexInFull !== -1 && newIndexInFull !== -1) {
-            setApps(arrayMove(allApps, oldIndexInFull, newIndexInFull));
+            const movedApps = arrayMove(allApps, oldIndexInFull, newIndexInFull);
+            setApps(movedApps);
+            setDroppedId(active.id as string);
+            setTimeout(() => setDroppedId(null), 400);
         }
     }
     setDraggingId(null);
@@ -150,6 +154,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
                     onEdit={() => onEdit(app)}
                     onDelete={() => onDelete(app)}
                     isDragging={draggingId === app.id}
+                    isDropped={droppedId === app.id}
                   />
                 </SortableItem>
               ))}

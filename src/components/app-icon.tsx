@@ -7,7 +7,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from './ui/button';
 import { Icon } from './icon';
 
-export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, isDropped?: boolean }) => {
   return (
     <div className="group flex flex-row items-start gap-0">
       <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
@@ -24,7 +24,8 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, on
                 'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
                 isDragging
                   ? 'scale-110 shadow-2xl transform-gpu z-10'
-                  : 'scale-100 shadow-none'
+                  : 'scale-100 shadow-none',
+                isDropped && 'animate-jiggle'
               )}
             >
               <div className={cn(

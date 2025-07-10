@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -129,6 +130,12 @@ export default {
             "animation-timing-function": "cubic-bezier(0.22, 1, 0.36, 1)",
           },
         },
+        'jiggle': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-2px) rotate(-1deg)' },
+          '50%': { transform: 'translateX(2px) rotate(1deg)' },
+          '75%': { transform: 'translateX(-2px) rotate(-1deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -137,6 +144,7 @@ export default {
         'dialog-out': 'dialog-out 0.3s ease-out forwards',
         pulse: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         "bounce-in-left": "bounce-in-left 0.4s ease-out",
+        'jiggle': 'jiggle 0.4s ease-in-out',
       },
     },
   },
