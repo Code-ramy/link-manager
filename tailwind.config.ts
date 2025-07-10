@@ -92,6 +92,26 @@ export default {
             height: '0',
           },
         },
+        'dialog-in': {
+          from: {
+            opacity: '0',
+            transform: 'translate(-50%, -48%) scale(0.95)',
+          },
+          to: {
+            opacity: '1',
+            transform: 'translate(-50%, -50%) scale(1)',
+          },
+        },
+        'dialog-out': {
+          from: {
+            opacity: '1',
+            transform: 'translate(-50%, -50%) scale(1)',
+          },
+          to: {
+            opacity: '0',
+            transform: 'translate(-50%, -48%) scale(0.95)',
+          },
+        },
         pulse: {
           '50%': { opacity: '0.5' },
         },
@@ -113,6 +133,8 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'dialog-in': 'dialog-in 0.3s ease-out',
+        'dialog-out': 'dialog-out 0.3s ease-out forwards',
         pulse: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         "bounce-in-left": "bounce-in-left 0.4s ease-out",
       },
