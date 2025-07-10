@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState, useId } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X } from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -136,7 +136,12 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="modal-card sm:max-w-sm">
-        <DialogHeader><DialogTitle>Manage Categories</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="font-headline text-xl text-white flex items-center gap-2">
+            <Settings2 className="w-5 h-5 text-blue-400" />
+            Manage Categories
+          </DialogTitle>
+        </DialogHeader>
         <div className="max-h-[300px] overflow-y-auto my-4 pr-4">
           <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
             <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
@@ -173,7 +178,12 @@ export function ManageCategoriesDialog({ open, onOpenChange, categories, onCateg
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
-            <h4 className="font-bold">{editingCategory ? 'Edit Category' : 'Add New Category'}</h4>
+            <h4 className="font-headline text-lg font-bold flex items-center gap-2">
+              {editingCategory 
+                ? <><Pencil className="w-4 h-4 text-blue-400" />Edit Category</>
+                : <><PlusSquare className="w-4 h-4 text-blue-400" />Add New Category</>
+              }
+            </h4>
             <div className="flex flex-col gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>

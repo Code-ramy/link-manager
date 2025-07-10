@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDebounce } from 'use-debounce';
-import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors, Save, X } from "lucide-react";
+import { ImageIcon, Upload, PenSquare, Link2, FolderKanban, Scissors, Save, X, PlusSquare } from "lucide-react";
 import type { WebApp } from '@/lib/types';
 import { getPageTitle } from '@/app/actions';
 import { useAppContext } from '@/contexts/app-context';
@@ -115,7 +115,10 @@ function EditAppDialogContent({ app, onOpenChange, defaultCategoryId }: EditAppD
   return (
     <DialogContent className="sm:max-w-sm modal-card border-white/20">
       <DialogHeader>
-        <DialogTitle className="font-headline text-lg text-white">{app ? 'Edit App' : 'Add App'}</DialogTitle>
+        <DialogTitle className="font-headline text-xl text-white flex items-center gap-2">
+          {app ? <PenSquare className="w-5 h-5 text-blue-400" /> : <PlusSquare className="w-5 h-5 text-blue-400" />}
+          {app ? 'Edit App' : 'Add App'}
+        </DialogTitle>
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
