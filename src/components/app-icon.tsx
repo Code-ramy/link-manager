@@ -8,6 +8,9 @@ import { Button } from './ui/button';
 import { Icon } from './icon';
 
 export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, isDropped?: boolean }) => {
+  const isImage = app.icon.startsWith('data:image') || app.icon.startsWith('http');
+  const applySquircle = isImage && app.clip;
+
   return (
     <div className="group flex flex-row items-start gap-0">
       <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
@@ -30,16 +33,15 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             >
               <div className={cn(
                 "w-full h-full flex items-center justify-center",
-                app.icon.startsWith('data:image') || app.icon.startsWith('http') 
-                  ? (app.clip && "squircle")
-                  : ""
+                applySquircle && "squircle"
               )}>
                 <Icon
                   name={app.icon}
                   alt={app.name}
                   className={cn(
-                    app.icon.startsWith('data:image') || app.icon.startsWith('http') ? 'w-full h-full object-cover' : 'w-9 h-9 text-white',
-                    app.clip && "squircle"
+                    'w-full h-full',
+                    isImage ? 'object-cover' : 'w-9 h-9 text-white',
+                    applySquircle && "squircle"
                   )}
                 />
               </div>
