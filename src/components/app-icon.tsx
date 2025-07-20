@@ -14,7 +14,15 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
   return (
     <div className="group flex flex-row items-start gap-0">
       <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
-        <div className="w-16 h-16">
+        <div
+          className={cn(
+            'w-16 h-16 transition-all duration-200 ease-in-out flex items-center justify-center',
+            isDragging
+              ? 'scale-110 shadow-2xl transform-gpu z-10'
+              : 'scale-100 shadow-none',
+            isDropped && 'animate-jiggle'
+          )}
+        >
           <a
             href={app.url}
             target="_blank"
@@ -22,29 +30,16 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             className="block w-full h-full transition-transform duration-150 active:scale-95"
             draggable="false"
           >
-            <div
-              className={cn(
-                'w-full h-full transition-all duration-200 ease-in-out flex items-center justify-center',
-                isDragging
-                  ? 'scale-110 shadow-2xl transform-gpu z-10'
-                  : 'scale-100 shadow-none',
-                isDropped && 'animate-jiggle'
-              )}
-            >
-              <div className={cn(
-                "w-full h-full flex items-center justify-center",
-                applySquircle && "squircle"
-              )}>
-                <Icon
-                  name={app.icon}
-                  alt={app.name}
-                  className={cn(
-                    'w-full h-full',
-                    isImage ? 'object-cover' : 'w-9 h-9 text-white',
-                    applySquircle && "squircle"
-                  )}
-                />
-              </div>
+            <div className={cn("w-full h-full flex items-center justify-center", applySquircle && "squircle")}>
+              <Icon
+                name={app.icon}
+                alt={app.name}
+                className={cn(
+                  'w-full h-full',
+                  isImage ? 'object-cover' : 'w-9 h-9 text-white',
+                  applySquircle && "squircle"
+                )}
+              />
             </div>
           </a>
         </div>
