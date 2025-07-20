@@ -133,6 +133,10 @@
     -webkit-mask-image: linear-gradient(to right, transparent, black 2rem, black calc(100% - 2rem), transparent);
     mask-image: linear-gradient(to right, transparent, black 2rem, black calc(100% - 2rem), transparent);
   }
+
+  .squircle {
+    clip-path: path('M 32,0 C 18,0 0,18 0,32 V 68 C 0,82 18,100 32,100 H 68 C 82,100 100,82 100,68 V 32 C 100,18 82,0 68,0 Z');
+  }
 }
 
 @keyframes dialog-in {

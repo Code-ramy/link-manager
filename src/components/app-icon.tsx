@@ -37,7 +37,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
                 className={cn(
                   'w-full h-full',
                   isImage ? 'object-cover' : 'w-9 h-9 text-white',
-                  applyClip && "rounded-[20px]"
+                  applyClip && "squircle"
                 )}
               />
             </div>
