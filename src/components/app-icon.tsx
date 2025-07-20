@@ -30,7 +30,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             className="block w-full h-full transition-transform duration-150 active:scale-95"
             draggable="false"
           >
-            <div className={cn("w-full h-full flex items-center justify-center", applySquircle && "squircle")}>
+            <div className={cn("w-full h-full flex items-center justify-center")}>
               <Icon
                 name={app.icon}
                 alt={app.name}
