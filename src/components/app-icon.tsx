@@ -30,14 +30,17 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             className="block w-full h-full transition-transform duration-150 active:scale-95"
             draggable="false"
           >
-            <div className={cn("w-full h-full flex items-center justify-center")}>
+            <div className={cn(
+                "w-full h-full flex items-center justify-center",
+                applyClip && "squircle overflow-hidden"
+              )}
+            >
               <Icon
                 name={app.icon}
                 alt={app.name}
                 className={cn(
                   'w-full h-full',
-                  isImage ? 'object-cover' : 'w-9 h-9 text-white',
-                  applyClip && "squircle"
+                  isImage ? 'object-cover' : 'w-9 h-9 text-white'
                 )}
               />
             </div>
