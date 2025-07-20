@@ -40,7 +40,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
                 alt={app.name}
                 className={cn(
                   'w-full h-full',
-                  isImage ? 'object-cover' : 'w-9 h-9 text-white'
+                  isImage ? 'object-contain' : 'w-9 h-9 text-white'
                 )}
               />
             </div>
