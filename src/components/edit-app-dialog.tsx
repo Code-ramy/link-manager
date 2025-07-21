@@ -55,16 +55,17 @@ interface EditAppDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultCategoryId?: string;
+  urlToAutoFill?: string;
 }
 
-const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<EditAppDialogProps, 'open'>) => {
+const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoFill }: Omit<EditAppDialogProps, 'open'>) => {
   const { categories, handleSaveApp } = useAppContext();
   
   const form = useForm<z.infer<typeof appSchema>>({
     resolver: zodResolver(appSchema),
     defaultValues: app 
       ? { ...app, clip: app.clip ?? true }
-      : { name: '', url: '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true },
+      : { name: '', url: urlToAutoFill || '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true },
   });
 
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
@@ -76,10 +77,20 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
       form.reset({ ...app, clip: app.clip ?? true });
       setIconPreview(app.icon);
     } else {
-      form.reset({ name: '', url: '', icon: 'Globe', categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''), clip: true });
-      setIconPreview('Globe');
+      const initialValues = {
+        name: '',
+        url: urlToAutoFill || '',
+        icon: 'Globe',
+        categoryId: defaultCategoryId || (categories.length > 0 ? categories[0].id : ''),
+        clip: true
+      };
+      form.reset(initialValues);
+      setIconPreview(initialValues.icon);
+      if(urlToAutoFill) {
+        form.trigger('url');
+      }
     }
-  }, [app, form, defaultCategoryId, categories]);
+  }, [app, form, defaultCategoryId, categories, urlToAutoFill]);
 
   useEffect(() => {
     const validation = z.string().url().safeParse(urlToFetch);
@@ -87,7 +98,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
 
     const fetchTitle = async () => {
       const currentName = form.getValues('name');
-      if (!currentName || (app && urlToFetch !== app.url)) {
+      if (!currentName || (app && urlToFetch !== app.url) || urlToAutoFill) {
         const title = await getPageTitle(urlToFetch);
         if (title) {
           form.setValue('name', title, { shouldValidate: true, shouldDirty: true });
@@ -96,7 +107,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
     };
     
     const fetchFavicon = () => {
-      if (!app || urlToFetch !== app.url) {
+      if (!app || urlToFetch !== app.url || urlToAutoFill) {
         const newFavicon = getFaviconUrl(urlToFetch);
         if (newFavicon) {
           setIconPreview(newFavicon);
@@ -107,7 +118,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
 
     fetchTitle();
     fetchFavicon();
-  }, [urlToFetch, app, form]);
+  }, [urlToFetch, app, form, urlToAutoFill]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -147,7 +158,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
           <motion.div custom={1} initial="hidden" animate="visible" variants={motionVariants} className="flex flex-col items-center gap-4 mb-2">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
               {iconPreview && (iconPreview.startsWith('data:') || iconPreview.startsWith('http')) ? (
-                <img src={iconPreview} alt="Preview" className="w-full h-full object-cover" />
+                <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
               ) : (
                 <ImageIcon className="w-7 h-7 text-muted-foreground" />
               )}
@@ -201,17 +212,17 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
               )} />
             </motion.div>
           </div>
-          <DialogFooter className="pt-4 mt-4 border-t border-white/10 gap-2 sm:justify-center">
-            <motion.div custom={6} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
-               <Button asChild variant="outline" className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">
+          <DialogFooter className="pt-4 mt-4 border-t border-white/10 gap-2 sm:flex-row sm:justify-center">
+            <motion.div custom={6} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-auto">
+               <Button asChild variant="outline" className="w-full sm:w-28 bg-white/10 border-white/20 hover:bg-white/20 text-white">
                  <DialogClose>
                    <X className="mr-2 h-4 w-4" />
                    Cancel
                  </DialogClose>
                </Button>
             </motion.div>
-            <motion.div custom={7} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white">
+            <motion.div custom={7} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-auto">
+              <Button type="submit" className="w-full sm:w-28 bg-primary hover:bg-primary/90 text-white">
                 <Save className="mr-2 h-4 w-4" />
                 Save
               </Button>
@@ -223,7 +234,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId }: Omit<Edi
   );
 };
 
-export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: EditAppDialogProps) {
+export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId, urlToAutoFill }: EditAppDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm modal-card border-white/20">
@@ -234,6 +245,7 @@ export function EditAppDialog({ app, open, onOpenChange, defaultCategoryId }: Ed
               app={app}
               onOpenChange={onOpenChange}
               defaultCategoryId={defaultCategoryId}
+              urlToAutoFill={urlToAutoFill}
             />
           )}
         </AnimatePresence>
