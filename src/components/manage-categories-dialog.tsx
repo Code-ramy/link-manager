@@ -318,7 +318,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
                             <ImageIcon className="w-7 h-7 text-muted-foreground" />
                         )}
                     </div>
-                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload</Button>
+                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
                     <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                     <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <Button size="sm" type="submit" className="w-24">
