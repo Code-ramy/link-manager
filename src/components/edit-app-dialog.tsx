@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { generateId } from '@/lib/utils';
+import { cn, generateId } from '@/lib/utils';
 
 const appSchema = z.object({
   name: z.string().min(1, "App name is required"),
@@ -71,6 +71,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
   const [urlToFetch] = useDebounce(form.watch('url'), 500);
   const [iconPreview, setIconPreview] = useState(form.getValues('icon'));
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   useEffect(() => {
     if (app) {
@@ -119,17 +120,49 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
     fetchTitle();
     fetchFavicon();
   }, [urlToFetch, app, form, urlToAutoFill]);
+  
+  const processFile = useCallback((file: File) => {
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            setIconPreview(dataUrl);
+            form.setValue('icon', dataUrl, { shouldValidate: true });
+        };
+        reader.readAsDataURL(file);
+    }
+  }, [form]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setIconPreview(dataUrl);
-        form.setValue('icon', dataUrl, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
+    }
+  };
+
+  const handleDragEvents = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+  
+  const handleDragLeave = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
     }
   };
 
@@ -155,8 +188,22 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 pt-2">
-          <motion.div custom={1} initial="hidden" animate="visible" variants={motionVariants} className="flex flex-col items-center gap-4 mb-2">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
+          <motion.div 
+            custom={1} 
+            initial="hidden" 
+            animate="visible" 
+            variants={motionVariants} 
+            className="flex flex-col items-center gap-4 mb-2 p-4 rounded-lg border-dashed transition-colors"
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragEvents}
+            onDrop={handleDrop}
+            className={cn(
+              "flex flex-col items-center gap-4 mb-2 p-4 rounded-lg border-dashed transition-colors",
+              isDragging ? 'border-2 border-primary bg-primary/10' : 'border-2 border-transparent'
+            )}
+          >
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner pointer-events-none">
               {iconPreview && (iconPreview.startsWith('data:') || iconPreview.startsWith('http')) ? (
                 <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
               ) : (
@@ -165,7 +212,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
             </div>
             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20 text-sm h-9">
               <Upload className="mr-2 h-4 w-4" />
-              Upload Image
+              Upload or Drop Image
             </Button>
             <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
           </motion.div>

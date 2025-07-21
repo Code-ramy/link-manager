@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState, useId } from 'react';
+import React, { useEffect, useRef, useState, useId, useCallback } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -69,6 +69,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
   const [iconPreview, setIconPreview] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
+  const [isDragging, setIsDragging] = useState(false);
 
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -84,17 +85,49 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     form.reset(category);
     setIconPreview(category.icon);
   };
+  
+  const processFile = useCallback((file: File) => {
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            setIconPreview(dataUrl);
+            form.setValue('icon', dataUrl, { shouldValidate: true });
+        };
+        reader.readAsDataURL(file);
+    }
+  }, [form]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setIconPreview(dataUrl);
-        form.setValue('icon', dataUrl, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
+    }
+  };
+
+  const handleDragEvents = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+  
+  const handleDragLeave = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    handleDragEvents(e);
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
     }
   };
 
@@ -193,8 +226,21 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
       </motion.div>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSaveCategory)} className="space-y-4 pt-4 border-t border-white/10">
-          <motion.div custom={2} initial="hidden" animate="visible" variants={motionVariants} className="pb-4 border-b border-white/10">
+        <form 
+          onSubmit={form.handleSubmit(handleSaveCategory)} 
+          className="space-y-4 pt-4 border-t border-white/10"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragEvents}
+          onDrop={handleDrop}
+        >
+          <motion.div 
+            custom={2} 
+            initial="hidden" 
+            animate="visible" 
+            variants={motionVariants} 
+            className="pb-4 border-b border-white/10"
+          >
             <h4 className="font-headline text-lg font-bold flex items-center gap-2 text-white">
               {editingCategory 
                 ? <><Pencil className="w-4 h-4 text-blue-400" />Edit Category</>
@@ -202,47 +248,54 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
               }
             </h4>
           </motion.div>
-          <div className="flex flex-col gap-4 pt-2">
-              <motion.div custom={3} initial="hidden" animate="visible" variants={motionVariants}>
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </motion.div>
-              <motion.div custom={4} initial="hidden" animate="visible" variants={motionVariants} className="space-y-4">
+          <div 
+             className={cn(
+              "p-4 rounded-lg border-dashed transition-colors",
+              isDragging ? 'border-2 border-primary bg-primary/10' : 'border-2 border-transparent'
+            )}
+          >
+            <motion.div custom={3} initial="hidden" animate="visible" variants={motionVariants}>
+              <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner">
-                        {iconPreview ? (
-                            <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
-                        ) : (
-                            <ImageIcon className="w-7 h-7 text-muted-foreground" />
-                        )}
-                    </div>
-                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
-                    <Button size="sm" type="submit" className="w-24">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      {editingCategory ? 'Update' : 'Add'}
-                    </Button>
-                    <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
-                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                  </div>
+                  <FormLabel className="flex items-center gap-2"><Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
+                  <FormControl><Input {...field} /></FormControl>
+                  <FormMessage />
                 </FormItem>
-              </motion.div>
+              )} />
+            </motion.div>
+            <motion.div custom={4} initial="hidden" animate="visible" variants={motionVariants} className="space-y-4 mt-4">
+              <FormItem>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner pointer-events-none">
+                      {iconPreview ? (
+                          <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
+                      ) : (
+                          <ImageIcon className="w-7 h-7 text-muted-foreground" />
+                      )}
+                  </div>
+                  <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
+                  <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
+                  <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+              </FormItem>
+            </motion.div>
           </div>
+          <motion.div custom={5} initial="hidden" animate="visible" variants={motionVariants} className="flex justify-end">
+             <Button size="sm" type="submit" className="w-24">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {editingCategory ? 'Update' : 'Add'}
+              </Button>
+          </motion.div>
         </form>
       </Form>
       <DialogFooter className="pt-4 mt-4 border-t border-white/10 sm:justify-center gap-2">
-          <motion.div custom={5} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
+          <motion.div custom={6} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
             <Button onClick={handleCancel} variant="outline" className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white">
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
           </motion.div>
-          <motion.div custom={6} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
+          <motion.div custom={7} initial="hidden" animate="visible" variants={motionVariants} className="w-full sm:w-28">
             <Button onClick={handleSaveChanges} className="w-full">
               <Save className="mr-2 h-4 w-4" />
               Save
