@@ -193,17 +193,18 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
             initial="hidden" 
             animate="visible" 
             variants={motionVariants} 
-            className="flex flex-col items-center gap-4 mb-2 p-4 rounded-lg border-dashed transition-colors"
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragEvents}
-            onDrop={handleDrop}
-            className={cn(
-              "flex flex-col items-center gap-4 mb-2 p-4 rounded-lg border-dashed transition-colors",
-              isDragging ? 'border-2 border-primary bg-primary/10' : 'border-2 border-transparent'
-            )}
+            className="flex flex-col items-center gap-4 mb-2 p-4"
           >
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner pointer-events-none">
+            <div 
+              className={cn(
+                "w-14 h-14 rounded-2xl flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner transition-colors",
+                isDragging ? 'border-dashed border-2 border-primary bg-primary/10' : 'border-white/10'
+              )}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragEvents}
+              onDrop={handleDrop}
+            >
               {iconPreview && (iconPreview.startsWith('data:') || iconPreview.startsWith('http')) ? (
                 <img src={iconPreview} alt="Preview" className="w-full h-full object-contain" />
               ) : (
@@ -212,7 +213,7 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
             </div>
             <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="bg-white/10 border-white/20 hover:bg-white/20 text-sm h-9">
               <Upload className="mr-2 h-4 w-4" />
-              Upload or Drop Image
+              Upload Icon
             </Button>
             <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef} />
           </motion.div>
