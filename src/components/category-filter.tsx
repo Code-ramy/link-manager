@@ -90,7 +90,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
         >
           <div
             ref={markerRef}
-            className="absolute left-0 top-1.5 h-[calc(100%-0.75rem)] origin-left rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+            className="absolute left-0 top-1.5 h-[calc(100%-0.75rem)] origin-left rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md transition-all duration-700 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)]"
           ></div>
           <button
             data-filter="all"

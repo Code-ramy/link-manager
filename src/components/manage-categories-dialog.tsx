@@ -387,7 +387,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
 export function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUpdate }: ManageCategoriesDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-card sm:max-w-md">
+      <DialogContent className="modal-card sm:max-w-sm">
         <AnimatePresence mode="wait">
           {open && (
             <ManageCategoriesDialogContent
