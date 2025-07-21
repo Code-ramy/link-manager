@@ -44,8 +44,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
                   isImage ? 'object-contain' : 'w-9 h-9 text-white',
                   isDragging 
                     ? '[filter:drop-shadow(0_12px_10px_rgba(0,0,0,0.45))]'
-                    : '[filter:drop-shadow(0_6px_5px_rgba(0,0,0,0.4))]',
-                  '[box-shadow:inset_0_1px_1px_rgba(255,255,255,0.1)]'
+                    : '[filter:drop-shadow(0_6px_5px_rgba(0,0,0,0.4))]'
                 )}
               />
             </div>
