@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
 import type { Category, WebApp } from '@/lib/types';
+import { initialCategories, initialWebApps } from '@/lib/data';
 
 type SetCategoriesFunction = (
   newCategoriesValue: Category[] | ((cats: Category[]) => Category[]),
@@ -36,7 +37,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const appCount = await db.apps.count();
         const categoryCount = await db.categories.count();
         if (appCount === 0 && categoryCount === 0) {
-          // This part can be populated with default data if needed
+           if (initialWebApps.length > 0) {
+             await db.apps.bulkAdd(initialWebApps);
+           }
+           if (initialCategories.length > 0) {
+             await db.categories.bulkAdd(initialCategories);
+           }
         }
       } catch (error) {
         console.error("Error seeding database:", error);
@@ -173,14 +179,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (typeof text !== 'string') throw new Error("Could not read the file.");
         const importedData = JSON.parse(text);
 
+        // Upgrade legacy backup files by adding 'order' field if it's missing
+        if (Array.isArray(importedData.apps)) {
+          importedData.apps.forEach((item: any, index: number) => {
+            if (typeof item.order !== 'number') {
+              item.order = index;
+            }
+          });
+        }
+        if (Array.isArray(importedData.categories)) {
+          importedData.categories.forEach((item: any, index: number) => {
+            if (typeof item.order !== 'number') {
+              item.order = index;
+            }
+          });
+        }
+
         const isValidWebApp = (item: any): item is WebApp => 
             typeof item === 'object' && item !== null &&
             'id' in item && 'name' in item && 'url' in item && 
-            'icon' in item && 'categoryId' in item && 'order' in item;
+            'icon' in item && 'categoryId' in item && typeof item.order === 'number';
         
         const isValidCategory = (item: any): item is Category =>
             typeof item === 'object' && item !== null &&
-            'id' in item && 'name' in item && 'icon' in item && 'order' in item;
+            'id' in item && 'name' in item && 'icon' in item && typeof item.order === 'number';
 
         if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories) &&
             importedData.apps.every(isValidWebApp) &&
