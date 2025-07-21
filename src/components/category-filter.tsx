@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef, useCallback, useLayoutEffect, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/contexts/app-context';
 import { Icon } from './icon';
@@ -15,7 +15,6 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
   const { categories } = useAppContext();
   const filterNavRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true, isOverflowing: false });
 
   const updateScrollState = useCallback(() => {
     const nav = filterNavRef.current;
@@ -24,38 +23,46 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
     const isOverflowing = nav.scrollWidth > nav.clientWidth + buffer;
     const atStart = nav.scrollLeft <= 0;
     const atEnd = nav.scrollLeft >= nav.scrollWidth - nav.clientWidth - buffer;
-    setScrollState(prevState => {
-      if (prevState.isOverflowing !== isOverflowing || prevState.atStart !== atStart || prevState.atEnd !== atEnd) {
-        return { isOverflowing, atStart, atEnd };
-      }
-      return prevState;
-    });
+    
+    nav.classList.toggle('scroll-fade-both', isOverflowing && !atStart && !atEnd);
+    nav.classList.toggle('scroll-fade-right', isOverflowing && atStart && !atEnd);
+    nav.classList.toggle('scroll-fade-left', isOverflowing && !atStart && atEnd);
   }, []);
 
-  useLayoutEffect(() => {
-    updateScrollState();
-    window.addEventListener('resize', updateScrollState);
-    const nav = filterNavRef.current;
-    if (nav) nav.addEventListener('scroll', updateScrollState, { passive: true });
-    return () => {
-      window.removeEventListener('resize', updateScrollState);
-      if (nav) nav.removeEventListener('scroll', updateScrollState);
-    };
-  }, [categories, updateScrollState]);
-
   const moveMarker = useCallback(() => {
-    if (!filterNavRef.current) return;
-    const activeBtn = filterNavRef.current.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
-    if (!markerRef.current || !activeBtn) return;
-    const { offsetLeft, offsetWidth } = activeBtn;
-    markerRef.current.style.width = `${offsetWidth}px`;
-    markerRef.current.style.transform = `translateX(${offsetLeft}px)`;
+    const nav = filterNavRef.current;
+    const marker = markerRef.current;
+    if (!nav || !marker) return;
+
+    const activeBtn = nav.querySelector(`[data-filter="${currentFilter}"]`) as HTMLElement;
+    if (activeBtn) {
+      const { offsetLeft, offsetWidth } = activeBtn;
+      marker.style.width = `${offsetWidth}px`;
+      marker.style.transform = `translateX(${offsetLeft}px)`;
+    }
   }, [currentFilter]);
 
   useEffect(() => {
     moveMarker();
-    setTimeout(updateScrollState, 750); // Increased timeout to allow for the longer animation
+    
+    const nav = filterNavRef.current;
+    if (!nav) return;
+
+    // Initial check and setup listeners
+    updateScrollState();
+    window.addEventListener('resize', updateScrollState);
+    nav.addEventListener('scroll', updateScrollState, { passive: true });
+
+    // Ensure state is correct after animations
+    const timer = setTimeout(updateScrollState, 750);
+
+    return () => {
+      window.removeEventListener('resize', updateScrollState);
+      nav.removeEventListener('scroll', updateScrollState);
+      clearTimeout(timer);
+    };
   }, [currentFilter, categories, moveMarker, updateScrollState]);
+
 
   const handleFilterClick = (filter: string) => {
     onFilterChange(filter);
@@ -76,15 +83,9 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
       <div className="inline-flex max-w-3xl">
         <nav
           ref={filterNavRef}
-          onScroll={updateScrollState}
           className={cn(
             "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]",
-            "scroll-smooth",
-            {
-              'scroll-fade-both': scrollState.isOverflowing && !scrollState.atStart && !scrollState.atEnd,
-              'scroll-fade-right': scrollState.isOverflowing && scrollState.atStart && !scrollState.atEnd,
-              'scroll-fade-left': scrollState.isOverflowing && !scrollState.atStart && scrollState.atEnd,
-            }
+            "scroll-smooth"
           )}
         >
           <div
