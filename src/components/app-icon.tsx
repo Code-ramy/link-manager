@@ -31,7 +31,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             draggable="false"
           >
             <div className={cn(
-                "w-full h-full flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]",
+                "w-full h-full flex items-center justify-center",
                 applyClip && "rounded-[22px] overflow-hidden bg-black/5"
               )}
             >
@@ -40,10 +40,12 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
                 alt={app.name}
                 className={cn(
                   'w-full h-full transition-all duration-200',
+                  applyClip && 'rounded-[22px]',
                   isImage ? 'object-contain' : 'w-9 h-9 text-white',
                   isDragging 
                     ? '[filter:drop-shadow(0_12px_10px_rgba(0,0,0,0.45))]'
-                    : '[filter:drop-shadow(0_6px_5px_rgba(0,0,0,0.4))]'
+                    : '[filter:drop-shadow(0_6px_5px_rgba(0,0,0,0.4))]',
+                  '[box-shadow:inset_0_1px_1px_rgba(255,255,255,0.1)]'
                 )}
               />
             </div>
