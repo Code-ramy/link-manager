@@ -20,9 +20,9 @@ class Particle {
         this.size = Math.random() * 2 + 1;
         this.x = Math.random() * (this.canvas.width - this.size * 2) + this.size;
         this.y = Math.random() * (this.canvas.height - this.size * 2) + this.size;
-        this.directionX = (Math.random() * 0.4) - 0.2;
-        this.directionY = (Math.random() * 0.4) - 0.2;
-        this.color = 'rgba(130, 87, 229, 0.25)';
+        this.directionX = (Math.random() * 0.3) - 0.15;
+        this.directionY = (Math.random() * 0.3) - 0.15;
+        this.color = 'rgba(130, 87, 229, 0.2)';
     }
 
     // Draws the particle on the canvas

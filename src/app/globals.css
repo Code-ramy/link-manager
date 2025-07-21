@@ -61,7 +61,7 @@
       position: absolute;
       border-radius: 50%;
       filter: blur(180px);
-      opacity: 0.2;
+      opacity: 0.18;
   }
   .shape1 { width: 600px; height: 600px; background: #8257e5; top: -200px; left: -200px; animation: move1 30s infinite alternate ease-in-out; }
   .shape2 { width: 500px; height: 500px; background: #0077b6; bottom: -150px; right: -150px; animation: move2 35s infinite alternate ease-in-out; }
