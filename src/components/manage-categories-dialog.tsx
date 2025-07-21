@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare } from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare, Wand2 } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -18,6 +18,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { cn, generateId } from '@/lib/utils';
 import { Icon } from './icon';
+import { suggestCategoryIcons } from '@/ai/flows/suggest-category-icons';
+import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from 'use-debounce';
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -72,21 +75,50 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
   const [isDragging, setIsDragging] = useState(false);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestedIcons, setSuggestedIcons] = useState<string[]>([]);
+  const { toast } = useToast();
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: '' },
   });
 
+  const categoryName = form.watch('name');
+  const [debouncedCategoryName] = useDebounce(categoryName, 500);
+
   useEffect(() => {
-    // Deep copy to avoid mutating the original array from props
-    setLocalCategories(JSON.parse(JSON.stringify(categories)));
+    setLocalCategories(categories);
   }, [categories]);
+  
+  const handleSuggestIcons = useCallback(async () => {
+    if (!debouncedCategoryName) return;
+    setIsSuggesting(true);
+    setSuggestedIcons([]);
+    try {
+      const result = await suggestCategoryIcons({ categoryName: debouncedCategoryName });
+      setSuggestedIcons(result.icons);
+    } catch (error) {
+      console.error("Failed to suggest icons:", error);
+      toast({ title: "Icon Suggestion Failed", description: "Could not fetch icon suggestions.", variant: "destructive" });
+    } finally {
+      setIsSuggesting(false);
+    }
+  }, [debouncedCategoryName, toast]);
+
+  useEffect(() => {
+    if (debouncedCategoryName) {
+      handleSuggestIcons();
+    } else {
+      setSuggestedIcons([]);
+    }
+  }, [debouncedCategoryName, handleSuggestIcons]);
 
   const handleEditClick = (category: Category) => {
     setEditingCategory(category);
     form.reset(category);
     setIconPreview(category.icon);
+    setSuggestedIcons([]);
   };
   
   const processFile = useCallback((file: File) => {
@@ -148,6 +180,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
+    setSuggestedIcons([]);
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -155,6 +188,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
       setEditingCategory(null);
       form.reset({ name: '', icon: '' });
       setIconPreview('');
+      setSuggestedIcons([]);
     }
     setLocalCategories(localCategories.filter(c => c.id !== id));
   };
@@ -165,7 +199,9 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     if (over && active.id !== over.id) {
       const oldIndex = localCategories.findIndex((c) => c.id === active.id);
       const newIndex = localCategories.findIndex((c) => c.id === over.id);
-      setLocalCategories(arrayMove(localCategories, oldIndex, newIndex));
+      if (oldIndex !== -1 && newIndex !== -1) {
+        setLocalCategories(arrayMove(localCategories, oldIndex, newIndex));
+      }
     }
   };
 
@@ -282,7 +318,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
                             <ImageIcon className="w-7 h-7 text-muted-foreground" />
                         )}
                     </div>
-                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
+                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload</Button>
                     <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
                     <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <Button size="sm" type="submit" className="w-24">
@@ -291,6 +327,41 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
                     </Button>
                   </div>
               </FormItem>
+              <AnimatePresence>
+                {(isSuggesting || suggestedIcons.length > 0) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="bg-black/20 p-2 rounded-lg border border-white/10">
+                      <div className="flex items-center text-sm text-muted-foreground mb-2">
+                        <Wand2 className="w-4 h-4 mr-2" />
+                        <span>AI Suggestions</span>
+                        {isSuggesting && <div className="ml-auto w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestedIcons.map(iconName => (
+                          <Button
+                            key={iconName}
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="w-9 h-9 bg-white/5 hover:bg-white/20"
+                            onClick={() => {
+                              form.setValue('icon', iconName, { shouldValidate: true });
+                              setIconPreview(iconName);
+                            }}
+                          >
+                            <Icon name={iconName} className="w-5 h-5" />
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
         </form>
@@ -316,7 +387,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
 export function ManageCategoriesDialog({ open, onOpenChange, categories, onCategoriesUpdate }: ManageCategoriesDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-card sm:max-w-sm">
+      <DialogContent className="modal-card sm:max-w-md">
         <AnimatePresence mode="wait">
           {open && (
             <ManageCategoriesDialogContent

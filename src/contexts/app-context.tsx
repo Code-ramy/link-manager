@@ -6,7 +6,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
 import type { Category, WebApp } from '@/lib/types';
-import { initialCategories, initialWebApps } from '@/lib/data';
 
 type SetCategoriesFunction = (
   newCategoriesValue: Category[] | ((cats: Category[]) => Category[]),
@@ -33,11 +32,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const seedDatabase = async () => {
-      const appCount = await db.apps.count();
-      const categoryCount = await db.categories.count();
-      if (appCount === 0 && categoryCount === 0) {
-        await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
-        await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
+      try {
+        const appCount = await db.apps.count();
+        const categoryCount = await db.categories.count();
+        if (appCount === 0 && categoryCount === 0) {
+          // This part can be populated with default data if needed
+        }
+      } catch (error) {
+        console.error("Error seeding database:", error);
       }
     };
     seedDatabase();
@@ -110,10 +112,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         await db.apps.update(appData.id, appData);
         toast({ title: "Updated successfully!", variant: "success" });
       } else {
+        const newOrder = (apps?.length || 0);
         await db.apps.add({
           ...appData,
           id: crypto.randomUUID(),
-          order: (apps?.length || 0)
+          order: newOrder
         });
         toast({ title: "Added successfully!", variant: "success" });
       }
@@ -135,6 +138,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const handleExport = async () => {
     try {
+        if (!apps || !categories) {
+          toast({ title: 'Error', description: 'Data is not ready for export.', variant: 'destructive' });
+          return;
+        }
         const exportData = {
           apps: await db.apps.toArray(),
           categories: await db.categories.toArray(),

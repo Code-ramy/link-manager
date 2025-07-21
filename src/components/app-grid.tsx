@@ -73,11 +73,15 @@ interface AppGridProps {
 }
 
 export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
-  const { apps: allApps, setApps, hasMounted } = useAppContext();
+  const { setApps, hasMounted } = useAppContext();
+  const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [droppedId, setDroppedId] = useState<string | null>(null);
-  const dndId = useId();
   const [isAnimating, setIsAnimating] = useState(false);
+  const dndId = useId();
+
+  useEffect(() => {
+    setOrderedApps(appsToRender);
+  }, [appsToRender]);
 
   const isDragging = !!draggingId;
   
@@ -98,20 +102,18 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
+    setDraggingId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
-        if (!allApps) return;
-        const oldIndex = allApps.findIndex(app => app.id === active.id);
-        const newIndex = allApps.findIndex(app => app.id === over.id);
+        const oldIndex = orderedApps.findIndex(app => app.id === active.id);
+        const newIndex = orderedApps.findIndex(app => app.id === over.id);
 
         if (oldIndex !== -1 && newIndex !== -1) {
-            const movedApps = arrayMove(allApps, oldIndex, newIndex);
-            setApps(movedApps);
-            setDroppedId(active.id as string);
-            setTimeout(() => setDroppedId(null), 400);
+            const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
+            setOrderedApps(newOrder); // Optimistic update for UI
+            setApps(newOrder); // Update database in the background
         }
     }
-    setDraggingId(null);
   };
   
   const handleAppDragCancel = () => {
@@ -131,7 +133,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
     );
   }
   
-  if (appsToRender.length === 0) {
+  if (orderedApps.length === 0) {
       return <CategoryEmptyState onAddApp={onAddApp} />
   }
 
@@ -145,7 +147,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
         onDragEnd={handleAppDragEnd}
         onDragCancel={handleAppDragCancel}
       >
-        <SortableContext items={appsToRender.map(a => a.id)} strategy={rectSortingStrategy}>
+        <SortableContext items={orderedApps.map(a => a.id)} strategy={rectSortingStrategy}>
           <AnimatePresence mode="wait">
             {!isAnimating && (
               <motion.div
@@ -156,14 +158,13 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
                 animate="visible"
                 exit="hidden"
               >
-                {appsToRender.map((app) => (
+                {orderedApps.map((app) => (
                   <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
                     <AppIcon
                       app={app}
                       onEdit={() => onEdit(app)}
                       onDelete={() => onDelete(app)}
                       isDragging={draggingId === app.id}
-                      isDropped={droppedId === app.id}
                     />
                   </SortableItem>
                 ))}
