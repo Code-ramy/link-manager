@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { cn, generateId } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 const appSchema = z.object({
   name: z.string().min(1, "App name is required"),
@@ -27,6 +27,8 @@ const appSchema = z.object({
   categoryId: z.string(),
   clip: z.boolean().optional(),
 });
+
+type AppFormData = z.infer<typeof appSchema>;
 
 const getFaviconUrl = (url: string) => {
   try {
@@ -61,7 +63,7 @@ interface EditAppDialogProps {
 const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoFill }: Omit<EditAppDialogProps, 'open'>) => {
   const { categories, handleSaveApp } = useAppContext();
   
-  const form = useForm<z.infer<typeof appSchema>>({
+  const form = useForm<AppFormData>({
     resolver: zodResolver(appSchema),
     defaultValues: app 
       ? { ...app, clip: app.clip ?? true }
@@ -166,8 +168,8 @@ const EditAppDialogContent = ({ app, onOpenChange, defaultCategoryId, urlToAutoF
     }
   };
 
-  const onSubmit = (data: z.infer<typeof appSchema>) => {
-    handleSaveApp({ ...data, id: app?.id || generateId() });
+  const onSubmit = (data: AppFormData) => {
+    handleSaveApp({ ...data, id: app?.id });
     onOpenChange(false);
   };
 

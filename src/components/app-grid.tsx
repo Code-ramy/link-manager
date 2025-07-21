@@ -93,12 +93,13 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const handleAppDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-        const oldIndexInFull = allApps.findIndex(app => app.id === active.id);
-        const newIndexInFull = allApps.findIndex(app => app.id === over.id);
+        if (!allApps) return;
+        const oldIndex = allApps.findIndex(app => app.id === active.id);
+        const newIndex = allApps.findIndex(app => app.id === over.id);
 
-        if (oldIndexInFull !== -1 && newIndexInFull !== -1) {
-            const movedApps = arrayMove(allApps, oldIndexInFull, newIndexInFull);
-            setApps(movedApps);
+        if (oldIndex !== -1 && newIndex !== -1) {
+            const movedApps = arrayMove(allApps, oldIndex, newIndex);
+            setApps(movedApps); // This now updates the order in IndexedDB via the context
             setDroppedId(active.id as string);
             setTimeout(() => setDroppedId(null), 400);
         }

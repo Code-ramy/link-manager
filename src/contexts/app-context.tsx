@@ -1,8 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useLocalStorage } from '@/hooks/use-local-storage';
+import React, 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
 import type { Category, WebApp } from '@/lib/types';
 import { initialCategories, initialWebApps } from '@/lib/data';
@@ -15,11 +17,11 @@ type SetCategoriesFunction = (
 
 interface AppContextType {
   apps: WebApp[];
-  setApps: (apps: WebApp[]) => void;
+  setApps: (apps: WebApp[]) => Promise<void>;
   categories: Category[];
   setCategories: SetCategoriesFunction;
-  handleSaveApp: (appData: WebApp) => void;
-  handleDeleteApp: (appId: string) => void;
+  handleSaveApp: (appData: Omit<WebApp, 'id' | 'order'> & { id?: string }) => Promise<void>;
+  handleDeleteApp: (appId: string) => Promise<void>;
   handleExport: () => void;
   handleImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   hasMounted: boolean;
@@ -28,16 +30,42 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialWebApps);
-  const [categories, _setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
-  const [hasMounted, setHasMounted] = useState(false);
   const { toast } = useToast();
+  
+  const apps = useLiveQuery(async () => {
+    const appsFromDb = await db.apps.orderBy('order').toArray();
+    if (appsFromDb.length === 0) {
+      // Seed initial data
+      await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
+      return db.apps.orderBy('order').toArray();
+    }
+    return appsFromDb;
+  }, [], []);
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  const categories = useLiveQuery(async () => {
+    const categoriesFromDb = await db.categories.orderBy('order').toArray();
+     if (categoriesFromDb.length === 0) {
+      await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
+      return db.categories.orderBy('order').toArray();
+    }
+    return categoriesFromDb;
+  }, [], []);
 
-  const setCategories: SetCategoriesFunction = (newCategoriesValue, currentFilter, onFilterChange) => {
+  const hasMounted = apps !== undefined && categories !== undefined;
+
+  const setApps = async (newApps: WebApp[]) => {
+    try {
+      const updatedApps = newApps.map((app, index) => ({ ...app, order: index }));
+      await db.apps.bulkPut(updatedApps);
+    } catch (error) {
+      console.error("Failed to reorder apps in DB:", error);
+      toast({ title: 'Error', description: 'Could not save new order.', variant: 'destructive' });
+    }
+  };
+
+  const setCategories: SetCategoriesFunction = useCallback(async (newCategoriesValue, currentFilter, onFilterChange) => {
+    if (!categories) return;
+
     const oldCategories = categories;
     let newCategories: Category[];
 
@@ -47,45 +75,79 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       newCategories = newCategoriesValue;
     }
 
-    const deletedCategoryIds = oldCategories
-      .filter((c) => !newCategories.some((nc) => nc.id === c.id))
-      .map((c) => c.id);
+    const updatedCategories = newCategories.map((c, i) => ({ ...c, order: i }));
 
-    if (deletedCategoryIds.length > 0) {
-      setApps(currentApps => currentApps.filter(app => !deletedCategoryIds.includes(app.categoryId)));
-      
-      if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
-        const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
-        if (deletedCategoryIndex > 0) {
-          onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
-        } else {
-          onFilterChange('all');
+    try {
+      // Identify deleted categories
+      const deletedCategoryIds = oldCategories
+        .filter(oldCat => !updatedCategories.some(newCat => newCat.id === oldCat.id))
+        .map(c => c.id);
+
+      if (deletedCategoryIds.length > 0) {
+        // Delete apps associated with deleted categories
+        await db.apps.where('categoryId').anyOf(deletedCategoryIds).delete();
+        
+        // Handle filter change if the active category was deleted
+        if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
+          const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
+          if (deletedCategoryIndex > 0) {
+            onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
+          } else {
+            onFilterChange('all');
+          }
         }
       }
+      
+      // Update categories in DB
+      await db.transaction('rw', db.categories, async () => {
+        await db.categories.clear();
+        await db.categories.bulkAdd(updatedCategories);
+      });
+
+    } catch (error) {
+      console.error("Failed to update categories:", error);
+      toast({ title: 'Error', description: 'Could not update categories.', variant: 'destructive' });
     }
+  }, [categories, toast]);
 
-    _setCategories(newCategories);
-  };
 
-  const handleSaveApp = (appData: WebApp) => {
-    const appExists = apps.some(a => a.id === appData.id);
-    if (appExists) {
-      setApps(apps.map(a => a.id === appData.id ? appData : a));
-      toast({ title: "Updated successfully!", variant: "success" });
-    } else {
-      setApps([...apps, appData]);
-      toast({ title: "Added successfully!", variant: "success" });
+  const handleSaveApp = async (appData: Omit<WebApp, 'id' | 'order'> & { id?: string }) => {
+    try {
+      if (appData.id) {
+        // Update existing app
+        await db.apps.update(appData.id, appData);
+        toast({ title: "Updated successfully!", variant: "success" });
+      } else {
+        // Add new app
+        const newId = await db.apps.add({
+          ...appData,
+          id: crypto.randomUUID(),
+          order: (apps?.length || 0)
+        });
+        toast({ title: "Added successfully!", variant: "success" });
+      }
+    } catch (error) {
+       console.error("Failed to save app:", error);
+       toast({ title: 'Error', description: 'Could not save the app.', variant: 'destructive' });
     }
   };
 
-  const handleDeleteApp = (appId: string) => {
-    setApps(apps.filter(a => a.id !== appId));
-    toast({ title: "Deleted successfully!", variant: "destructive" });
+  const handleDeleteApp = async (appId: string) => {
+    try {
+      await db.apps.delete(appId);
+      toast({ title: "Deleted successfully!", variant: "destructive" });
+    } catch(error) {
+      console.error("Failed to delete app:", error);
+      toast({ title: 'Error', description: 'Could not delete the app.', variant: 'destructive' });
+    }
   };
 
-  const handleExport = () => {
-    const data = { apps, categories };
-    const jsonString = JSON.stringify(data, null, 2);
+  const handleExport = async () => {
+    const exportData = {
+      apps: await db.apps.toArray(),
+      categories: await db.categories.toArray(),
+    };
+    const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -102,15 +164,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const text = e.target?.result;
         if (typeof text !== 'string') throw new Error("Could not read the file.");
         const importedData = JSON.parse(text);
         
         if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories)) {
-          setApps(importedData.apps);
-          _setCategories(importedData.categories);
+          await db.transaction('rw', db.apps, db.categories, async () => {
+            await db.apps.clear();
+            await db.categories.clear();
+            await db.apps.bulkAdd(importedData.apps);
+            await db.categories.bulkAdd(importedData.categories);
+          });
           toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });
         } else {
           throw new Error("Invalid file format.");
@@ -127,10 +193,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     reader.readAsText(file);
   };
 
-  const value = {
-    apps,
+  const value: AppContextType = {
+    apps: apps || [],
     setApps,
-    categories,
+    categories: categories || [],
     setCategories,
     handleSaveApp,
     handleDeleteApp,

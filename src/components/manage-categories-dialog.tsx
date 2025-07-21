@@ -24,6 +24,8 @@ const categorySchema = z.object({
   icon: z.string().min(1, "Icon is required"),
 });
 
+type CategoryFormData = z.infer<typeof categorySchema>;
+
 const motionVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
@@ -71,12 +73,13 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
   const dndId = useId();
   const [isDragging, setIsDragging] = useState(false);
 
-  const form = useForm<z.infer<typeof categorySchema>>({
+  const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: '' },
   });
 
   useEffect(() => {
+    // Deep copy to avoid mutating the original array from props
     setLocalCategories(JSON.parse(JSON.stringify(categories)));
   }, [categories]);
 
@@ -131,11 +134,16 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     }
   };
 
-  const handleSaveCategory = (data: z.infer<typeof categorySchema>) => {
+  const handleSaveCategory = (data: CategoryFormData) => {
     if (editingCategory) {
       setLocalCategories(localCategories.map(c => c.id === editingCategory.id ? { ...editingCategory, ...data } : c));
     } else {
-      setLocalCategories([...localCategories, { ...data, id: generateId() }]);
+      const newCategory: Category = {
+        ...data,
+        id: generateId(),
+        order: localCategories.length,
+      };
+      setLocalCategories([...localCategories, newCategory]);
     }
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
@@ -256,7 +264,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
             </motion.div>
             <motion.div custom={4} initial="hidden" animate="visible" variants={motionVariants} className="space-y-2">
               <FormItem>
-                  <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-muted-foreground"/>Category Icon</FormLabel>
+                 <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-muted-foreground"/>Category Icon</FormLabel>
                   <div className="flex items-center gap-4">
                     <div 
                       className={cn(
