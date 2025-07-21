@@ -1,8 +1,7 @@
 
 "use client";
 
-import React, 'react';
-import { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
@@ -33,22 +32,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   
   const apps = useLiveQuery(async () => {
-    const appsFromDb = await db.apps.orderBy('order').toArray();
-    if (appsFromDb.length === 0) {
-      // Seed initial data
+    const count = await db.apps.count();
+    if (count === 0) {
+      // Seed initial data only if the database is empty
       await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
-      return db.apps.orderBy('order').toArray();
     }
-    return appsFromDb;
+    return db.apps.orderBy('order').toArray();
   }, [], []);
 
   const categories = useLiveQuery(async () => {
-    const categoriesFromDb = await db.categories.orderBy('order').toArray();
-     if (categoriesFromDb.length === 0) {
+    const count = await db.categories.count();
+    if (count === 0) {
       await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
-      return db.categories.orderBy('order').toArray();
     }
-    return categoriesFromDb;
+    return db.categories.orderBy('order').toArray();
   }, [], []);
 
   const hasMounted = apps !== undefined && categories !== undefined;
@@ -78,16 +75,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const updatedCategories = newCategories.map((c, i) => ({ ...c, order: i }));
 
     try {
-      // Identify deleted categories
       const deletedCategoryIds = oldCategories
         .filter(oldCat => !updatedCategories.some(newCat => newCat.id === oldCat.id))
         .map(c => c.id);
 
       if (deletedCategoryIds.length > 0) {
-        // Delete apps associated with deleted categories
         await db.apps.where('categoryId').anyOf(deletedCategoryIds).delete();
         
-        // Handle filter change if the active category was deleted
         if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
           const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
           if (deletedCategoryIndex > 0) {
@@ -98,7 +92,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      // Update categories in DB
       await db.transaction('rw', db.categories, async () => {
         await db.categories.clear();
         await db.categories.bulkAdd(updatedCategories);
@@ -114,12 +107,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const handleSaveApp = async (appData: Omit<WebApp, 'id' | 'order'> & { id?: string }) => {
     try {
       if (appData.id) {
-        // Update existing app
         await db.apps.update(appData.id, appData);
         toast({ title: "Updated successfully!", variant: "success" });
       } else {
-        // Add new app
-        const newId = await db.apps.add({
+        await db.apps.add({
           ...appData,
           id: crypto.randomUUID(),
           order: (apps?.length || 0)
