@@ -246,42 +246,43 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
           </motion.div>
           <div className="space-y-4">
             <motion.div custom={3} initial="hidden" animate="visible" variants={motionVariants}>
+              <div className="flex items-end gap-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-grow">
                     <FormLabel className="flex items-center gap-2"><Tag className="w-4 h-4 text-muted-foreground"/>Category Name</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
+                <Button size="sm" type="submit" className="w-24 shrink-0">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {editingCategory ? 'Update' : 'Add'}
+                </Button>
+              </div>
             </motion.div>
-            <motion.div custom={4} initial="hidden" animate="visible" variants={motionVariants} className="space-y-4">
-              <FormItem>
-                  <div className="flex items-end gap-4">
-                    <div 
-                      className={cn(
-                        "w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner transition-colors",
-                        isDragging ? 'border-dashed border-2 border-primary bg-primary/10' : 'border-white/10'
+            <motion.div custom={4} initial="hidden" animate="visible" variants={motionVariants} className="space-y-2">
+                <FormLabel className="flex items-center gap-2"><ImageIcon className="w-4 h-4 text-muted-foreground"/>Category Icon</FormLabel>
+                <div className="flex items-center gap-4">
+                  <div 
+                    className={cn(
+                      "w-12 h-12 rounded-lg flex items-center justify-center bg-black/20 border border-white/10 shrink-0 overflow-hidden shadow-inner transition-colors",
+                      isDragging ? 'border-dashed border-2 border-primary bg-primary/10' : 'border-white/10'
+                    )}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragEvents}
+                    onDrop={handleDrop}
+                  >
+                      {iconPreview ? (
+                          <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
+                      ) : (
+                          <ImageIcon className="w-7 h-7 text-muted-foreground" />
                       )}
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                      onDragOver={handleDragEvents}
-                      onDrop={handleDrop}
-                    >
-                        {iconPreview ? (
-                            <Icon name={iconPreview} className={iconPreview.startsWith('data:image') ? "w-full h-full object-contain" : 'w-7 h-7'} />
-                        ) : (
-                            <ImageIcon className="w-7 h-7 text-muted-foreground" />
-                        )}
-                    </div>
-                    <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
-                    <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
-                    <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <Button size="sm" type="submit" className="w-24">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        {editingCategory ? 'Update' : 'Add'}
-                    </Button>
                   </div>
-              </FormItem>
+                  <Button size="sm" type="button" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => fileInputRef.current?.click()}><Upload className="mr-2 h-4 w-4" /> Upload Icon</Button>
+                  <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" ref={fileInputRef}/>
+                  <FormField control={form.control} name="icon" render={({ field }) => (<FormItem className="hidden"><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                </div>
             </motion.div>
           </div>
         </form>
