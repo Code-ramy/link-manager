@@ -78,7 +78,7 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
           ref={filterNavRef}
           onScroll={updateScrollState}
           className={cn(
-            "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg",
+            "glass-bar relative flex items-center flex-nowrap overflow-x-auto scrollbar-hide gap-1 rounded-full p-1.5 shadow-lg shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]",
             "scroll-smooth",
             {
               'scroll-fade-both': scrollState.isOverflowing && !scrollState.atStart && !scrollState.atEnd,

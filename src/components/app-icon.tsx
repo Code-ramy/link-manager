@@ -31,7 +31,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             draggable="false"
           >
             <div className={cn(
-                "w-full h-full flex items-center justify-center",
+                "w-full h-full flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]",
                 applyClip && "rounded-[22px] overflow-hidden bg-black/5"
               )}
             >
