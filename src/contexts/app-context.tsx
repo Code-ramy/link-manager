@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
@@ -30,23 +30,23 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
-  
-  const apps = useLiveQuery(async () => {
-    const count = await db.apps.count();
-    if (count === 0) {
-      // Seed initial data only if the database is empty
-      await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
-    }
-    return db.apps.orderBy('order').toArray();
-  }, [], []);
 
-  const categories = useLiveQuery(async () => {
-    const count = await db.categories.count();
-    if (count === 0) {
-      await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
-    }
-    return db.categories.orderBy('order').toArray();
-  }, [], []);
+  useEffect(() => {
+    const seedDatabase = async () => {
+      const appCount = await db.apps.count();
+      if (appCount === 0) {
+        await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
+      }
+      const categoryCount = await db.categories.count();
+      if (categoryCount === 0) {
+        await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
+      }
+    };
+    seedDatabase();
+  }, []);
+  
+  const apps = useLiveQuery(() => db.apps.orderBy('order').toArray(), []);
+  const categories = useLiveQuery(() => db.categories.orderBy('order').toArray(), []);
 
   const hasMounted = apps !== undefined && categories !== undefined;
 
@@ -73,28 +73,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     const updatedCategories = newCategories.map((c, i) => ({ ...c, order: i }));
-
+    
     try {
       const deletedCategoryIds = oldCategories
         .filter(oldCat => !updatedCategories.some(newCat => newCat.id === oldCat.id))
         .map(c => c.id);
 
-      if (deletedCategoryIds.length > 0) {
-        await db.apps.where('categoryId').anyOf(deletedCategoryIds).delete();
-        
-        if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
-          const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
-          if (deletedCategoryIndex > 0) {
-            onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
-          } else {
-            onFilterChange('all');
+      await db.transaction('rw', db.categories, db.apps, async () => {
+        if (deletedCategoryIds.length > 0) {
+          await db.apps.where('categoryId').anyOf(deletedCategoryIds).delete();
+          
+          if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
+            const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
+            if (deletedCategoryIndex > 0) {
+              onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
+            } else {
+              onFilterChange('all');
+            }
           }
         }
-      }
-      
-      await db.transaction('rw', db.categories, async () => {
+        
         await db.categories.clear();
-        await db.categories.bulkAdd(updatedCategories);
+        if (updatedCategories.length > 0) {
+          await db.categories.bulkAdd(updatedCategories);
+        }
       });
 
     } catch (error) {
