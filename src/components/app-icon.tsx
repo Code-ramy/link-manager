@@ -18,8 +18,8 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
           className={cn(
             'w-16 h-16 transition-all duration-200 ease-in-out flex items-center justify-center',
             isDragging
-              ? 'scale-110 shadow-2xl transform-gpu z-10'
-              : 'scale-100 shadow-lg shadow-black/30',
+              ? 'scale-110 transform-gpu z-10'
+              : 'scale-100',
             isDropped && 'animate-jiggle'
           )}
         >
@@ -39,8 +39,11 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
                 name={app.icon}
                 alt={app.name}
                 className={cn(
-                  'w-full h-full',
-                  isImage ? 'object-contain' : 'w-9 h-9 text-white'
+                  'w-full h-full transition-all duration-200',
+                  isImage ? 'object-contain' : 'w-9 h-9 text-white',
+                  isDragging 
+                    ? '[filter:drop-shadow(0_10px_8px_rgba(0,0,0,0.4))]'
+                    : '[filter:drop-shadow(0_4px_3px_rgba(0,0,0,0.3))]'
                 )}
               />
             </div>
