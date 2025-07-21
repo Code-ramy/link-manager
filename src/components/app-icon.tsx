@@ -19,7 +19,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             'w-16 h-16 transition-all duration-200 ease-in-out flex items-center justify-center',
             isDragging
               ? 'scale-110 shadow-2xl transform-gpu z-10'
-              : 'scale-100 shadow-none',
+              : 'scale-100 shadow-lg shadow-black/30',
             isDropped && 'animate-jiggle'
           )}
         >
@@ -32,7 +32,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
           >
             <div className={cn(
                 "w-full h-full flex items-center justify-center",
-                applyClip && "squircle overflow-hidden"
+                applyClip && "rounded-[22px] overflow-hidden bg-black/5"
               )}
             >
               <Icon
