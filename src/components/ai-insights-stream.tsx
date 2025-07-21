@@ -49,7 +49,7 @@ export function AiInsightsStream() {
   };
 
   const handleCategoriesUpdate = (updatedCategories: Category[]) => {
-    setCategories(updatedCategories);
+    setCategories(updatedCategories, currentFilter, setCurrentFilter);
   };
 
   const handleUrlDrop = (url: string) => {

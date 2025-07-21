@@ -7,11 +7,17 @@ import { useToast } from "@/hooks/use-toast";
 import type { Category, WebApp } from '@/lib/types';
 import { initialCategories, initialWebApps } from '@/lib/data';
 
+type SetCategoriesFunction = (
+  newCategoriesValue: Category[] | ((cats: Category[]) => Category[]),
+  currentFilter?: string,
+  onFilterChange?: (filter: string) => void
+) => void;
+
 interface AppContextType {
   apps: WebApp[];
   setApps: (apps: WebApp[]) => void;
   categories: Category[];
-  setCategories: (categories: Category[] | ((cats: Category[]) => Category[])) => void;
+  setCategories: SetCategoriesFunction;
   handleSaveApp: (appData: WebApp) => void;
   handleDeleteApp: (appId: string) => void;
   handleExport: () => void;
@@ -31,7 +37,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setHasMounted(true);
   }, []);
 
-  const setCategories = (newCategoriesValue: Category[] | ((cats: Category[]) => Category[])) => {
+  const setCategories: SetCategoriesFunction = (newCategoriesValue, currentFilter, onFilterChange) => {
     const oldCategories = categories;
     let newCategories: Category[];
 
@@ -47,6 +53,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (deletedCategoryIds.length > 0) {
       setApps(currentApps => currentApps.filter(app => !deletedCategoryIds.includes(app.categoryId)));
+      
+      if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
+        const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
+        if (deletedCategoryIndex > 0) {
+          onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
+        } else {
+          onFilterChange('all');
+        }
+      }
     }
 
     _setCategories(newCategories);
