@@ -34,12 +34,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const seedDatabase = async () => {
       const appCount = await db.apps.count();
-      if (appCount === 0) {
-        await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
-      }
       const categoryCount = await db.categories.count();
-      if (categoryCount === 0) {
+      if (appCount === 0 && categoryCount === 0) {
         await db.categories.bulkAdd(initialCategories.map((cat, index) => ({ ...cat, order: index })));
+        await db.apps.bulkAdd(initialWebApps.map((app, index) => ({ ...app, order: index })));
       }
     };
     seedDatabase();
@@ -136,21 +134,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleExport = async () => {
-    const exportData = {
-      apps: await db.apps.toArray(),
-      categories: await db.categories.toArray(),
-    };
-    const jsonString = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const href = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = href;
-    link.download = `link-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(href);
-    toast({ title: 'Export Successful', description: 'Your data has been saved.', variant: 'success' });
+    try {
+        const exportData = {
+          apps: await db.apps.toArray(),
+          categories: await db.categories.toArray(),
+        };
+        const jsonString = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const href = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = `link-manager-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(href);
+        toast({ title: 'Export Successful', description: 'Your data has been saved.', variant: 'success' });
+    } catch (error) {
+        console.error("Failed to export data:", error);
+        toast({ title: 'Error', description: 'Could not export your data.', variant: 'destructive' });
+    }
   };
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,8 +165,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const text = e.target?.result;
         if (typeof text !== 'string') throw new Error("Could not read the file.");
         const importedData = JSON.parse(text);
+
+        const isValidWebApp = (item: any): item is WebApp => 
+            typeof item === 'object' && item !== null &&
+            'id' in item && 'name' in item && 'url' in item && 
+            'icon' in item && 'categoryId' in item && 'order' in item;
         
-        if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories)) {
+        const isValidCategory = (item: any): item is Category =>
+            typeof item === 'object' && item !== null &&
+            'id' in item && 'name' in item && 'icon' in item && 'order' in item;
+
+        if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories) &&
+            importedData.apps.every(isValidWebApp) &&
+            importedData.categories.every(isValidCategory)) 
+        {
           await db.transaction('rw', db.apps, db.categories, async () => {
             await db.apps.clear();
             await db.categories.clear();
@@ -172,7 +187,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           });
           toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });
         } else {
-          throw new Error("Invalid file format.");
+          throw new Error("Invalid file format or structure.");
         }
       } catch (error: any) {
         toast({ title: 'Import Failed', description: error.message || 'The file is not valid.', variant: 'destructive' });
