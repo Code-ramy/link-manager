@@ -45,7 +45,8 @@ export function AiInsightsStream() {
   };
 
   const handleCategoriesUpdate = (updatedCategories: Category[]) => {
-    const deletedCategoryIds = categories
+    const oldCategories = categories;
+    const deletedCategoryIds = oldCategories
       .filter((c) => !updatedCategories.some((uc) => uc.id === c.id))
       .map((c) => c.id);
 

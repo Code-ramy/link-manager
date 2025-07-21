@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -10,7 +11,7 @@ interface AppContextType {
   apps: WebApp[];
   setApps: (apps: WebApp[]) => void;
   categories: Category[];
-  setCategories: (categories: Category[]) => void;
+  setCategories: (categories: Category[] | ((cats: Category[]) => Category[])) => void;
   handleSaveApp: (appData: WebApp) => void;
   handleDeleteApp: (appId: string) => void;
   handleExport: () => void;
@@ -22,13 +23,34 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [apps, setApps] = useLocalStorage<WebApp[]>('web-apps', initialWebApps);
-  const [categories, setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
+  const [categories, _setCategories] = useLocalStorage<Category[]>('web-app-categories', initialCategories);
   const [hasMounted, setHasMounted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  const setCategories = (newCategoriesValue: Category[] | ((cats: Category[]) => Category[])) => {
+    const oldCategories = categories;
+    let newCategories: Category[];
+
+    if (typeof newCategoriesValue === 'function') {
+      newCategories = newCategoriesValue(oldCategories);
+    } else {
+      newCategories = newCategoriesValue;
+    }
+
+    const deletedCategoryIds = oldCategories
+      .filter((c) => !newCategories.some((nc) => nc.id === c.id))
+      .map((c) => c.id);
+
+    if (deletedCategoryIds.length > 0) {
+      setApps(currentApps => currentApps.filter(app => !deletedCategoryIds.includes(app.categoryId)));
+    }
+
+    _setCategories(newCategories);
+  };
 
   const handleSaveApp = (appData: WebApp) => {
     const appExists = apps.some(a => a.id === appData.id);
@@ -73,7 +95,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         
         if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories)) {
           setApps(importedData.apps);
-          setCategories(importedData.categories);
+          _setCategories(importedData.categories);
           toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });
         } else {
           throw new Error("Invalid file format.");
