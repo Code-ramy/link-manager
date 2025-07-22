@@ -18,8 +18,11 @@ const containerVariants = {
     transition: { staggerChildren: 0.02, delayChildren: 0.05 },
   },
   hidden: {
-    transition: { staggerChildren: 0, staggerDirection: -1 }, // Removed stagger on exit
+    transition: { staggerChildren: 0, staggerDirection: -1 },
   },
+  exit: {
+    transition: { staggerChildren: 0, staggerDirection: -1 },
+  }
 };
 
 const itemVariants = {
@@ -76,6 +79,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const dndId = useId();
   
   useEffect(() => {
     setOrderedApps(appsToRender);
