@@ -18,7 +18,7 @@ const containerVariants = {
     transition: { staggerChildren: 0.02, delayChildren: 0.05 },
   },
   hidden: {
-    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+    transition: { staggerChildren: 0, staggerDirection: -1 }, // Removed stagger on exit
   },
 };
 
@@ -30,7 +30,7 @@ const itemVariants = {
     transition: { type: 'spring', stiffness: 150, damping: 15, mass: 0.5 },
   },
   hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2, ease: 'easeIn' } },
-  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.15, ease: 'easeOut' } }
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } } // Faster exit
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
@@ -57,7 +57,7 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div variants={itemVariants}>
+      <motion.div variants={itemVariants} exit="exit">
         {children}
       </motion.div>
     </div>
@@ -76,21 +76,13 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const dndId = useId();
-
+  
   useEffect(() => {
     setOrderedApps(appsToRender);
   }, [appsToRender]);
 
   const isDragging = !!draggingId;
   
-  useEffect(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 500); 
-    return () => clearTimeout(timer);
-  }, [currentFilter]);
-
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
       distance: 5,
@@ -149,27 +141,25 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
       >
         <SortableContext items={orderedApps.map(a => a.id)} strategy={rectSortingStrategy}>
           <AnimatePresence mode="wait">
-            {!isAnimating && (
-              <motion.div
-                key={currentFilter}
-                className="grid grid-cols-7 gap-12 justify-items-center"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-              >
-                {orderedApps.map((app) => (
-                  <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
-                    <AppIcon
-                      app={app}
-                      onEdit={() => onEdit(app)}
-                      onDelete={() => onDelete(app)}
-                      isDragging={draggingId === app.id}
-                    />
-                  </SortableItem>
-                ))}
-              </motion.div>
-            )}
+            <motion.div
+              key={currentFilter}
+              className="grid grid-cols-7 gap-12 justify-items-center"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              {orderedApps.map((app) => (
+                <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
+                  <AppIcon
+                    app={app}
+                    onEdit={() => onEdit(app)}
+                    onDelete={() => onDelete(app)}
+                    isDragging={draggingId === app.id}
+                  />
+                </SortableItem>
+              ))}
+            </motion.div>
           </AnimatePresence>
         </SortableContext>
       </DndContext>
