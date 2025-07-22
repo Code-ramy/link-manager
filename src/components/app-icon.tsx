@@ -7,12 +7,12 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from './ui/button';
 import { Icon } from './icon';
 
-export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean }) => {
+export const AppIcon = ({ app, onEdit, onDelete, isDragging, isGhost }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, isGhost?: boolean }) => {
   const isImage = app.icon.startsWith('data:image') || app.icon.startsWith('http');
   const applyClip = isImage && app.clip;
 
   return (
-    <div className="group flex flex-row items-start gap-0">
+    <div className={cn("group flex flex-row items-start gap-0", isGhost && 'opacity-50')}>
       <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
         <div
           className={cn(
