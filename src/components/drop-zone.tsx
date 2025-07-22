@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DownloadCloud } from 'lucide-react';
 import { z } from 'zod';
@@ -15,12 +15,12 @@ interface DropZoneProps {
 
 export function DropZone({ children, onUrlDrop }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
-  let dragCounter = 0;
+  const dragCounter = useRef(0);
 
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    dragCounter++;
+    dragCounter.current++;
     if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
       setIsDragging(true);
     }
@@ -29,8 +29,8 @@ export function DropZone({ children, onUrlDrop }: DropZoneProps) {
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    dragCounter--;
-    if (dragCounter === 0) {
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
       setIsDragging(false);
     }
   }, []);
@@ -44,7 +44,7 @@ export function DropZone({ children, onUrlDrop }: DropZoneProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    dragCounter = 0;
+    dragCounter.current = 0;
 
     let url: string | null = null;
 
@@ -63,6 +63,18 @@ export function DropZone({ children, onUrlDrop }: DropZoneProps) {
     }
 
   }, [onUrlDrop]);
+
+  useEffect(() => {
+    const handleDragEnd = () => {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    };
+
+    window.addEventListener('dragend', handleDragEnd);
+    return () => {
+      window.removeEventListener('dragend', handleDragEnd);
+    };
+  }, []);
 
   return (
     <div
