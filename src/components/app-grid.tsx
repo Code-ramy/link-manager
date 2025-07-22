@@ -78,6 +78,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [activeApp, setActiveApp] = useState<WebApp | null>(null);
+  const [droppedId, setDroppedId] = useState<string | null>(null);
   
   useEffect(() => {
     setOrderedApps(appsToRender);
@@ -106,6 +107,8 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
             const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
             setOrderedApps(newOrder); // Optimistic update for UI
             setApps(newOrder); // Update database in the background
+            setDroppedId(active.id as string);
+            setTimeout(() => setDroppedId(null), 400);
         }
     }
     setActiveApp(null);
@@ -157,6 +160,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
                     app={app}
                     onEdit={() => onEdit(app)}
                     onDelete={() => onDelete(app)}
+                    isDropped={droppedId === app.id}
                   />
                 </SortableItem>
               ))}

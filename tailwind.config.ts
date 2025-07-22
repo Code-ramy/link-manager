@@ -131,9 +131,9 @@ export default {
           },
         },
         'jiggle': {
-          '0%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(1.05)' },
-          '100%': { transform: 'scale(1)' },
+          '0%, 100%': { transform: 'scale(1) rotate(0deg)' },
+          '25%': { transform: 'scale(1.05) rotate(-1deg)' },
+          '75%': { transform: 'scale(0.95) rotate(1deg)' },
         },
       },
       animation: {
