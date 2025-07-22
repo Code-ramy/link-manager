@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { Upload, Download, Settings, Plus } from "lucide-react";
 import type { Category, WebApp } from '@/lib/types';
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from '@/components/logo';
 import { DropZone } from '@/components/drop-zone';
 
-export function AiInsightsStream() {
+export function LinkManager() {
   const { apps, categories, hasMounted, handleExport, handleImport, setCategories, handleDeleteApp } = useAppContext();
   
   const [currentFilter, setCurrentFilter] = useState('all');
@@ -29,34 +29,34 @@ export function AiInsightsStream() {
   
   const appsToRender = apps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
 
-  const handleOpenAddDialog = () => {
+  const handleOpenAddDialog = useCallback(() => {
     setEditingApp(null);
     setUrlToAutoFill(undefined);
     setIsEditAppOpen(true);
-  }
+  }, []);
 
-  const handleOpenEditDialog = (app: WebApp) => {
+  const handleOpenEditDialog = useCallback((app: WebApp) => {
     setEditingApp(app);
     setUrlToAutoFill(undefined);
     setIsEditAppOpen(true);
-  }
+  }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = useCallback(() => {
     if (appToDelete) {
       handleDeleteApp(appToDelete.id);
       setAppToDelete(null);
     }
-  };
+  }, [appToDelete, handleDeleteApp]);
 
-  const handleCategoriesUpdate = (updatedCategories: Category[]) => {
+  const handleCategoriesUpdate = useCallback((updatedCategories: Category[]) => {
     setCategories(updatedCategories, currentFilter, setCurrentFilter);
-  };
+  }, [setCategories, currentFilter]);
 
-  const handleUrlDrop = (url: string) => {
+  const handleUrlDrop = useCallback((url: string) => {
     setEditingApp(null);
     setUrlToAutoFill(url);
     setIsEditAppOpen(true);
-  }
+  }, []);
 
   return (
     <>

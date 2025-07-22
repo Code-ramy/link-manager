@@ -68,7 +68,7 @@ interface ManageCategoriesDialogProps {
 }
 
 const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesUpdate }: ManageCategoriesDialogProps) => {
-  const [localCategories, setLocalCategories] = useState<Category[]>([]);
+  const [localCategories, setLocalCategories] = useState<Category[]>(() => [...categories]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [iconPreview, setIconPreview] = useState('');
@@ -86,10 +86,6 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
 
   const categoryName = form.watch('name');
   const [debouncedCategoryName] = useDebounce(categoryName, 500);
-
-  useEffect(() => {
-    setLocalCategories(categories);
-  }, [categories]);
   
   const handleSuggestIcons = useCallback(async () => {
     if (!debouncedCategoryName) return;

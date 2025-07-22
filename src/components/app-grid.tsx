@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useId, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -20,9 +20,6 @@ const containerVariants = {
   hidden: {
     transition: { staggerChildren: 0, staggerDirection: -1 },
   },
-  exit: {
-    transition: { staggerChildren: 0, staggerDirection: -1 },
-  }
 };
 
 const itemVariants = {
@@ -33,7 +30,7 @@ const itemVariants = {
     transition: { type: 'spring', stiffness: 150, damping: 15, mass: 0.5 },
   },
   hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2, ease: 'easeIn' } },
-  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } } // Faster exit
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } }
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
@@ -79,7 +76,6 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const dndId = useId();
   
   useEffect(() => {
     setOrderedApps(appsToRender);
@@ -136,7 +132,6 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   return (
     <div className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
       <DndContext 
-        id={dndId}
         sensors={sensors} 
         collisionDetector={closestCenter} 
         onDragStart={handleAppDragStart}

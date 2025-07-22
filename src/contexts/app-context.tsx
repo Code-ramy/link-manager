@@ -1,12 +1,11 @@
 
 "use client";
 
-import React, { createContext, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useToast } from "@/hooks/use-toast";
 import type { Category, WebApp } from '@/lib/types';
-import { initialCategories, initialWebApps } from '@/lib/data';
 
 type SetCategoriesFunction = (
   newCategoriesValue: Category[] | ((cats: Category[]) => Category[]),
@@ -30,31 +29,16 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const [hasMounted, setHasMounted] = useState(false);
 
-  useEffect(() => {
-    const seedDatabase = async () => {
-      try {
-        const appCount = await db.apps.count();
-        const categoryCount = await db.categories.count();
-        if (appCount === 0 && categoryCount === 0) {
-           if (initialWebApps.length > 0) {
-             await db.apps.bulkAdd(initialWebApps);
-           }
-           if (initialCategories.length > 0) {
-             await db.categories.bulkAdd(initialCategories);
-           }
-        }
-      } catch (error) {
-        console.error("Error seeding database:", error);
-      }
-    };
-    seedDatabase();
-  }, []);
-  
   const apps = useLiveQuery(() => db.apps.orderBy('order').toArray(), []);
   const categories = useLiveQuery(() => db.categories.orderBy('order').toArray(), []);
 
-  const hasMounted = apps !== undefined && categories !== undefined;
+  useEffect(() => {
+    if (apps !== undefined && categories !== undefined) {
+      setHasMounted(true);
+    }
+  }, [apps, categories]);
 
   const setApps = async (newApps: WebApp[]) => {
     try {
@@ -91,11 +75,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           
           if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
             const deletedCategoryIndex = oldCategories.findIndex(c => c.id === currentFilter);
+            let nextFilter = 'all';
             if (deletedCategoryIndex > 0) {
-              onFilterChange(oldCategories[deletedCategoryIndex - 1].id);
-            } else {
-              onFilterChange('all');
+              nextFilter = oldCategories[deletedCategoryIndex - 1].id;
+            } else if (updatedCategories.length > 0 && deletedCategoryIndex !== 0) {
+              nextFilter = updatedCategories[0].id;
             }
+            onFilterChange(nextFilter);
           }
         }
         
@@ -179,7 +165,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (typeof text !== 'string') throw new Error("Could not read the file.");
         const importedData = JSON.parse(text);
 
-        // Upgrade legacy backup files by adding 'order' field if it's missing
         if (Array.isArray(importedData.apps)) {
           importedData.apps.forEach((item: any, index: number) => {
             if (typeof item.order !== 'number') {

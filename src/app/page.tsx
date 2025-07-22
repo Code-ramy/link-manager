@@ -1,11 +1,11 @@
-import { AiInsightsStream } from '@/components/ai-insights-stream';
+import { LinkManager } from '@/components/link-manager';
 import { AnimatedBackground } from '@/components/animated-background';
 
 export default function Home() {
   return (
     <>
       <AnimatedBackground />
-      <AiInsightsStream />
+      <LinkManager />
     </>
   );
 }
