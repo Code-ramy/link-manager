@@ -12,7 +12,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isGhost }: { app: W
   const applyClip = isImage && app.clip;
 
   return (
-    <div className={cn("group flex flex-row items-start gap-0", isGhost && 'opacity-50')}>
+    <div className={cn("group flex flex-row items-start gap-0", isGhost && 'invisible')}>
       <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
         <div
           className={cn(
