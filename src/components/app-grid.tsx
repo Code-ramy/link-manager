@@ -44,7 +44,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 400,
+      duration: 550,
       easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     },
   });
