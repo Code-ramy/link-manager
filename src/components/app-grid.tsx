@@ -33,18 +33,19 @@ const itemVariants = {
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } }
 };
 
-const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
+const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
+    isDragging,
   } = useSortable({
     id,
     transition: {
-      duration: 550,
-      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      duration: 300,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
     },
   });
 
@@ -52,6 +53,8 @@ const SortableItem = ({ id, children, isDragging }: { id: string | number, child
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? undefined : transition,
     position: 'relative',
+    opacity: isDragging ? 0 : 1, // Hide original item smoothly
+    zIndex: isDragging ? 0 : 'auto',
   };
 
   return (
@@ -74,14 +77,13 @@ interface AppGridProps {
 export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeApp, setActiveApp] = useState<WebApp | null>(null);
   
   useEffect(() => {
     setOrderedApps(appsToRender);
   }, [appsToRender]);
 
-  const isDragging = !!draggingId;
+  const isDragging = !!activeApp;
   
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
@@ -91,13 +93,10 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
 
   const handleAppDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    setDraggingId(active.id as string);
     setActiveApp(orderedApps.find(app => app.id === active.id) || null);
   };
 
   const handleAppDragEnd = (event: DragEndEvent) => {
-    setDraggingId(null);
-    setActiveApp(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
         const oldIndex = orderedApps.findIndex(app => app.id === active.id);
@@ -109,10 +108,10 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
             setApps(newOrder); // Update database in the background
         }
     }
+    setActiveApp(null);
   };
   
   const handleAppDragCancel = () => {
-    setDraggingId(null);
     setActiveApp(null);
   }
 
@@ -153,13 +152,11 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
               exit="hidden"
             >
               {orderedApps.map((app) => (
-                <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
+                <SortableItem key={app.id} id={app.id}>
                   <AppIcon
                     app={app}
                     onEdit={() => onEdit(app)}
                     onDelete={() => onDelete(app)}
-                    isDragging={draggingId === app.id}
-                    isGhost={draggingId === app.id}
                   />
                 </SortableItem>
               ))}

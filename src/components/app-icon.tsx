@@ -7,19 +7,20 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from './ui/button';
 import { Icon } from './icon';
 
-export const AppIcon = ({ app, onEdit, onDelete, isDragging, isGhost }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging: boolean, isGhost?: boolean }) => {
+export const AppIcon = ({ app, onEdit, onDelete, isDragging }: { app: WebApp, onEdit: () => void, onDelete: () => void, isDragging?: boolean }) => {
   const isImage = app.icon.startsWith('data:image') || app.icon.startsWith('http');
   const applyClip = isImage && app.clip;
 
   return (
-    <div className={cn("group flex flex-row items-start gap-0", isGhost && 'invisible')}>
-      <div className="flex flex-col items-center gap-2 text-center w-20 transition-transform duration-200 ease-in-out group-hover:-translate-y-1">
+    <div className="group flex flex-row items-start gap-0">
+      <div className={cn(
+        "flex flex-col items-center gap-2 text-center w-20",
+        !isDragging && "transition-transform duration-200 ease-in-out group-hover:-translate-y-1"
+      )}>
         <div
           className={cn(
-            'w-16 h-16 transition-all duration-200 ease-in-out flex items-center justify-center',
-            isDragging
-              ? 'scale-110 transform-gpu z-10'
-              : 'scale-100',
+            'w-16 h-16 flex items-center justify-center transform-gpu',
+            isDragging && 'scale-110'
           )}
         >
           <a
@@ -38,7 +39,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isGhost }: { app: W
                 name={app.icon}
                 alt={app.name}
                 className={cn(
-                  'w-full h-full transition-all duration-200',
+                  'w-full h-full',
                   applyClip && 'rounded-[22px]',
                   isImage ? 'object-contain' : 'w-9 h-9 text-white',
                   isDragging 
@@ -53,7 +54,8 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isGhost }: { app: W
       </div>
       
       <div className={cn(
-        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-1 -ml-2"
+        "flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity -mt-1 -ml-2",
+        isDragging && 'hidden'
       )}>
         <Button variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={onEdit}>
           <Pencil className="w-4 h-4" />
