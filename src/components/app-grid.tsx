@@ -15,13 +15,13 @@ import { CategoryEmptyState } from './category-empty-state';
 
 const containerVariants = {
   visible: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.02, delayChildren: 0.05 },
   },
   hidden: {
     transition: { staggerChildren: 0, staggerDirection: -1 },
   },
   exit: {
-    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+    transition: { staggerChildren: 0, staggerDirection: -1 },
   }
 };
 
@@ -30,15 +30,10 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: 'spring', stiffness: 120, damping: 14, mass: 0.8 },
+    transition: { type: 'spring', stiffness: 150, damping: 15, mass: 0.5 },
   },
-  hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.3, ease: 'easeIn' } },
-  exit: { 
-    opacity: 0, 
-    y: -15, 
-    scale: 0.95, 
-    transition: { type: 'spring', stiffness: 100, damping: 20 } 
-  }
+  hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2, ease: 'easeIn' } },
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } } // Faster exit
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
@@ -156,7 +151,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              exit="exit"
+              exit="hidden"
             >
               {orderedApps.map((app) => (
                 <SortableItem key={app.id} id={app.id} isDragging={draggingId === app.id}>
