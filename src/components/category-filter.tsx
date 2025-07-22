@@ -5,6 +5,7 @@ import { useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/contexts/app-context';
 import { Icon } from './icon';
+import { LayoutGrid } from 'lucide-react';
 
 interface CategoryFilterProps {
   currentFilter: string;
@@ -97,10 +98,11 @@ export function CategoryFilter({ currentFilter, onFilterChange }: CategoryFilter
             onClick={() => handleFilterClick('all')}
             className={cn(
               "relative z-10 flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all duration-300 active:scale-95",
-              currentFilter === "all" ? "text-white scale-110" : "text-gray-200 hover:bg-white/10 hover:text-white"
+              currentFilter === "all" ? "text-white scale-110" : "text-gray-200 hover:bg-muted/10 hover:text-white"
             )}
           >
-            All
+            <LayoutGrid className="h-4 w-4" />
+            All Apps
           </button>
           {categories.map(c => (
             <button
