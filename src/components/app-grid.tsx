@@ -37,7 +37,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.4, ease: [0.6, 0.05, -0.01, 0.9] },
+    transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
   },
   exit: {
     opacity: 0,
