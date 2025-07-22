@@ -15,7 +15,7 @@ import { CategoryEmptyState } from './category-empty-state';
 
 const containerVariants = {
   visible: {
-    transition: { staggerChildren: 0.03, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.04, delayChildren: 0.1 },
   },
   hidden: {
     transition: { staggerChildren: 0, staggerDirection: -1 },
@@ -33,7 +33,12 @@ const itemVariants = {
     transition: { type: 'spring', stiffness: 120, damping: 14, mass: 0.8 },
   },
   hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.3, ease: 'easeIn' } },
-  exit: { opacity: 0, y: -15, scale: 0.95, transition: { duration: 0.25, ease: 'easeOut' } }
+  exit: { 
+    opacity: 0, 
+    y: -15, 
+    scale: 0.95, 
+    transition: { type: 'spring', stiffness: 100, damping: 20 } 
+  }
 };
 
 const SortableItem = ({ id, children, isDragging }: { id: string | number, children: React.ReactNode, isDragging: boolean }) => {
