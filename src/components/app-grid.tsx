@@ -14,23 +14,37 @@ import { useAppContext } from '@/contexts/app-context';
 import { CategoryEmptyState } from './category-empty-state';
 
 const containerVariants = {
+  hidden: { opacity: 0 },
   visible: {
-    transition: { staggerChildren: 0.02, delayChildren: 0.05 },
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.1,
+    },
   },
-  hidden: {
-    transition: { staggerChildren: 0, staggerDirection: -1 },
-  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+    }
+  }
 };
 
 const itemVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: 'spring', stiffness: 150, damping: 15, mass: 0.5 },
+    transition: { duration: 0.4, ease: [0.6, 0.05, -0.01, 0.9] },
   },
-  hidden: { opacity: 0, y: 20, scale: 0.95, transition: { duration: 0.2, ease: 'easeIn' } },
-  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.1, ease: 'easeOut' } }
+  exit: {
+    opacity: 0,
+    y: -10,
+    scale: 0.95,
+    transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
+  }
 };
 
 const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
@@ -59,7 +73,7 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div variants={itemVariants} exit="exit">
+      <motion.div variants={itemVariants}>
         {children}
       </motion.div>
     </div>
@@ -152,7 +166,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              exit="hidden"
+              exit="exit"
             >
               {orderedApps.map((app) => (
                 <SortableItem key={app.id} id={app.id}>
