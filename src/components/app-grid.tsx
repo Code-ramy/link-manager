@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -13,40 +12,66 @@ import { AppIcon } from '@/components/app-icon';
 import { useAppContext } from '@/contexts/app-context';
 import { CategoryEmptyState } from './category-empty-state';
 
+// ==== أفضل إعدادات للنعومة واللطافة ====
 const containerVariants = {
-  hidden: { opacity: 0 },
   visible: {
-    opacity: 1,
     transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.1,
+      staggerChildren: 0.13,
+      delayChildren: 0.18,
+      when: "beforeChildren"
     },
   },
-  exit: {
-    opacity: 0,
+  hidden: {
     transition: {
-      staggerChildren: 0.02,
-      staggerDirection: -1,
-    }
-  }
+      staggerChildren: 0.04,
+      staggerDirection: -1
+    },
+  },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+    boxShadow: "0 8px 32px 0 rgba(0,0,0,0.13)",
+    filter: "blur(0px)",
+    transition: {
+      type: "spring",
+      stiffness: 38,   // أقل stiffness = حركة ألطف
+      damping: 26,
+      mass: 0.32,
+      duration: 0.7,
+      ease: [0.18, 0.89, 0.32, 1.28]
+    }
+  },
+  hidden: {
+    opacity: 0,
+    y: 70,
+    scale: 0.89,
+    boxShadow: "none",
+    filter: "blur(1.5px)",
+    transition: {
+      type: "tween",
+      duration: 0.54,
+      ease: [0.18, 0.89, 0.32, 1.28]
+    }
   },
   exit: {
     opacity: 0,
-    y: -10,
-    scale: 0.95,
-    transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
+    y: 35,
+    scale: 0.87,
+    boxShadow: "none",
+    filter: "blur(1.5px)",
+    transition: {
+      type: "tween",
+      duration: 0.25,
+      ease: [0.55, 0.06, 0.68, 0.19]
+    }
   }
 };
 
+// ===== عنصر قابل للسحب مع نعومة إضافية =====
 const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
   const {
     attributes,
@@ -58,8 +83,8 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 550,
-      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      duration: 700,
+      easing: 'cubic-bezier(0.18, 0.89, 0.32, 1.28)',
     },
   });
 
@@ -67,13 +92,28 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? undefined : transition,
     position: 'relative',
-    opacity: isDragging ? 0 : 1, // Hide original item smoothly
+    opacity: isDragging ? 0 : 1,
     zIndex: isDragging ? 0 : 'auto',
+    borderRadius: '16px',
+    willChange: 'transform, opacity, box-shadow, filter',
+    // تأثير عند التحويم (يمكنك إضافة كلاس Tailwind عند AppIcon لو أحببت)
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div variants={itemVariants}>
+      <motion.div
+        variants={itemVariants}
+        exit="exit"
+        style={{
+          willChange: 'transform, opacity, box-shadow, filter',
+          transition: 'box-shadow 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28)'
+        }}
+        whileHover={{
+          scale: 1.045,
+          boxShadow: "0 12px 36px 0 rgba(0,0,0,0.16)",
+          filter: "blur(0px)"
+        }}
+      >
         {children}
       </motion.div>
     </div>
@@ -93,13 +133,13 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [activeApp, setActiveApp] = useState<WebApp | null>(null);
   const [droppedId, setDroppedId] = useState<string | null>(null);
-  
+
   useEffect(() => {
     setOrderedApps(appsToRender);
   }, [appsToRender]);
 
   const isDragging = !!activeApp;
-  
+
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
       distance: 5,
@@ -114,20 +154,20 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const handleAppDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-        const oldIndex = orderedApps.findIndex(app => app.id === active.id);
-        const newIndex = orderedApps.findIndex(app => app.id === over.id);
+      const oldIndex = orderedApps.findIndex(app => app.id === active.id);
+      const newIndex = orderedApps.findIndex(app => app.id === over.id);
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-            const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
-            setOrderedApps(newOrder); // Optimistic update for UI
-            setApps(newOrder); // Update database in the background
-            setDroppedId(active.id as string);
-            setTimeout(() => setDroppedId(null), 400);
-        }
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
+        setOrderedApps(newOrder); // Optimistic update for UI
+        setApps(newOrder); // Update database in the background
+        setDroppedId(active.id as string);
+        setTimeout(() => setDroppedId(null), 400);
+      }
     }
     setActiveApp(null);
   };
-  
+
   const handleAppDragCancel = () => {
     setActiveApp(null);
   }
@@ -144,16 +184,16 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
       </div>
     );
   }
-  
+
   if (orderedApps.length === 0) {
-      return <CategoryEmptyState onAddApp={onAddApp} />
+    return <CategoryEmptyState onAddApp={onAddApp} />
   }
 
   return (
     <div className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
-      <DndContext 
-        sensors={sensors} 
-        collisionDetector={closestCenter} 
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
         onDragStart={handleAppDragStart}
         onDragEnd={handleAppDragEnd}
         onDragCancel={handleAppDragCancel}
@@ -166,7 +206,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              exit="exit"
+              exit="hidden"
             >
               {orderedApps.map((app) => (
                 <SortableItem key={app.id} id={app.id}>
@@ -186,8 +226,8 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
           {activeApp ? (
             <AppIcon
               app={activeApp}
-              onEdit={() => {}}
-              onDelete={() => {}}
+              onEdit={() => { }}
+              onDelete={() => { }}
               isDragging
             />
           ) : null}

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare, Wand2 } from "lucide-react";
+import { GripVertical, Pencil, Trash2, Tag, ImageIcon, Upload, PlusCircle, Save, X, Settings2, PlusSquare } from "lucide-react";
 import type { Category } from '@/lib/types';
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -18,9 +18,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { cn, generateId } from '@/lib/utils';
 import { Icon } from './icon';
-import { suggestCategoryIcons } from '@/ai/flows/suggest-category-icons';
-import { useToast } from '@/hooks/use-toast';
-import { useDebounce } from 'use-debounce';
 
 const categorySchema = z.object({
   name: z.string().min(1, "Category name is required"),
@@ -75,46 +72,16 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dndId = useId();
   const [isDragging, setIsDragging] = useState(false);
-  const [isSuggesting, setIsSuggesting] = useState(false);
-  const [suggestedIcons, setSuggestedIcons] = useState<string[]>([]);
-  const { toast } = useToast();
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: '', icon: '' },
   });
-
-  const categoryName = form.watch('name');
-  const [debouncedCategoryName] = useDebounce(categoryName, 500);
   
-  const handleSuggestIcons = useCallback(async () => {
-    if (!debouncedCategoryName) return;
-    setIsSuggesting(true);
-    setSuggestedIcons([]);
-    try {
-      const result = await suggestCategoryIcons({ categoryName: debouncedCategoryName });
-      setSuggestedIcons(result.icons);
-    } catch (error) {
-      console.error("Failed to suggest icons:", error);
-      toast({ title: "Icon Suggestion Failed", description: "Could not fetch icon suggestions.", variant: "destructive" });
-    } finally {
-      setIsSuggesting(false);
-    }
-  }, [debouncedCategoryName, toast]);
-
-  useEffect(() => {
-    if (debouncedCategoryName) {
-      handleSuggestIcons();
-    } else {
-      setSuggestedIcons([]);
-    }
-  }, [debouncedCategoryName, handleSuggestIcons]);
-
   const handleEditClick = (category: Category) => {
     setEditingCategory(category);
     form.reset(category);
     setIconPreview(category.icon);
-    setSuggestedIcons([]);
   };
   
   const processFile = useCallback((file: File) => {
@@ -176,7 +143,6 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
     setEditingCategory(null);
     form.reset({ name: '', icon: '' });
     setIconPreview('');
-    setSuggestedIcons([]);
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -184,7 +150,6 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
       setEditingCategory(null);
       form.reset({ name: '', icon: '' });
       setIconPreview('');
-      setSuggestedIcons([]);
     }
     setLocalCategories(localCategories.filter(c => c.id !== id));
   };
@@ -230,7 +195,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
         </motion.div>
       </DialogHeader>
 
-      <motion.div custom={1} initial="hidden" animate="visible" variants={motionVariants} className="max-h-[300px] overflow-y-auto my-4 pr-4">
+      <motion.div custom={1} initial="hidden" animate="visible" variants={motionVariants} className="max-h-[300px] overflow-y-auto my-4 pr-3 scrollbar-hide">
         <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
           <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
             {localCategories.map(c => (
@@ -323,41 +288,6 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
                     </Button>
                   </div>
               </FormItem>
-              <AnimatePresence>
-                {(isSuggesting || suggestedIcons.length > 0) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="bg-black/20 p-2 rounded-lg border border-white/10">
-                      <div className="flex items-center text-sm text-muted-foreground mb-2">
-                        <Wand2 className="w-4 h-4 mr-2" />
-                        <span>AI Suggestions</span>
-                        {isSuggesting && <div className="ml-auto w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {suggestedIcons.map(iconName => (
-                          <Button
-                            key={iconName}
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="w-9 h-9 bg-white/5 hover:bg-white/20"
-                            onClick={() => {
-                              form.setValue('icon', iconName, { shouldValidate: true });
-                              setIconPreview(iconName);
-                            }}
-                          >
-                            <Icon name={iconName} className="w-5 h-5" />
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
           </div>
         </form>
