@@ -1,6 +1,6 @@
 # 🔗 Link Manager Application
 
-"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience. ✨
+"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience.
 
 ---
 
