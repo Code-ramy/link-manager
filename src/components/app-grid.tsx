@@ -12,19 +12,19 @@ import { AppIcon } from '@/components/app-icon';
 import { useAppContext } from '@/contexts/app-context';
 import { CategoryEmptyState } from './category-empty-state';
 
-// ==== أفضل إعدادات للنعومة واللطافة ====
+// ==== تحسين متغيرات الأنيميشن لجعلها انسيابية وناعمة ====
 const containerVariants = {
   visible: {
-    transition: {
+    transition: { 
       staggerChildren: 0.13,
       delayChildren: 0.18,
       when: "beforeChildren"
     },
   },
   hidden: {
-    transition: {
-      staggerChildren: 0.04,
-      staggerDirection: -1
+    transition: { 
+      staggerChildren: 0.04, 
+      staggerDirection: -1 
     },
   },
 };
@@ -34,11 +34,9 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    boxShadow: "0 8px 32px 0 rgba(0,0,0,0.13)",
-    filter: "blur(0px)",
     transition: {
       type: "spring",
-      stiffness: 38,   // أقل stiffness = حركة ألطف
+      stiffness: 38,
       damping: 26,
       mass: 0.32,
       duration: 0.7,
@@ -49,8 +47,6 @@ const itemVariants = {
     opacity: 0,
     y: 70,
     scale: 0.89,
-    boxShadow: "none",
-    filter: "blur(1.5px)",
     transition: {
       type: "tween",
       duration: 0.54,
@@ -61,8 +57,6 @@ const itemVariants = {
     opacity: 0,
     y: 35,
     scale: 0.87,
-    boxShadow: "none",
-    filter: "blur(1.5px)",
     transition: {
       type: "tween",
       duration: 0.25,
@@ -71,7 +65,6 @@ const itemVariants = {
   }
 };
 
-// ===== عنصر قابل للسحب مع نعومة إضافية =====
 const SortableItem = ({ id, children }: { id: string | number, children: React.ReactNode }) => {
   const {
     attributes,
@@ -83,8 +76,8 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
   } = useSortable({
     id,
     transition: {
-      duration: 700,
-      easing: 'cubic-bezier(0.18, 0.89, 0.32, 1.28)',
+      duration: 550, // رفع مدة السحب ليصبح أكثر نعومة
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
     },
   });
 
@@ -92,28 +85,16 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? undefined : transition,
     position: 'relative',
-    opacity: isDragging ? 0 : 1,
+    opacity: isDragging ? 0 : 1, // Hide original item smoothly
     zIndex: isDragging ? 0 : 'auto',
-    borderRadius: '16px',
-    willChange: 'transform, opacity, box-shadow, filter',
-    // تأثير عند التحويم (يمكنك إضافة كلاس Tailwind عند AppIcon لو أحببت)
+    boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.12)' : undefined, // إضافة ظل خفيف أثناء السحب
+    borderRadius: '12px',
+    willChange: 'transform, opacity'
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <motion.div
-        variants={itemVariants}
-        exit="exit"
-        style={{
-          willChange: 'transform, opacity, box-shadow, filter',
-          transition: 'box-shadow 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28)'
-        }}
-        whileHover={{
-          scale: 1.045,
-          boxShadow: "0 12px 36px 0 rgba(0,0,0,0.16)",
-          filter: "blur(0px)"
-        }}
-      >
+      <motion.div variants={itemVariants} exit="exit">
         {children}
       </motion.div>
     </div>
