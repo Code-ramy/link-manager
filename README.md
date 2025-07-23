@@ -8,10 +8,11 @@
 
 *   **🔗 Link Management:** Easily add, edit, and delete your web application links.
 *   **📂 Custom Categories:** Create categories with custom names and icons to effectively organize your links.
-*   **🖐️ Drag and Drop:** Reorder applications within each category with a smooth drag-and-drop experience.
+*   **🖐️ Drag & Drop Reordering:** Reorder applications within each category with a smooth drag-and-drop experience.
+*   **💧 Drag & Drop Link Creation:** Simply drag a link from your browser or anywhere else and drop it onto the app to instantly start the process of adding it.
 *   **🤖 Automatic Data Fetching:** When adding a new link, the application automatically fetches the site name and favicon to simplify the process.
 *   **🔄 Import and Export:** Save all your data (applications and categories) to a JSON file for backup or import, ensuring your data is never lost.
-*   **🗄️ IndexedDB with Dexie.js:** All your data is securely stored in your browser's IndexedDB, managed by Dexie.js for high performance and reliability.
+*   **🗄️ IndexedDB with Dexie.js:** All your data is securely and efficiently stored in your browser's IndexedDB, managed by Dexie.js for high performance and reliability.
 
 ---
 
