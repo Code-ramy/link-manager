@@ -11,7 +11,7 @@
 *   **🖐️ Drag and Drop:** Reorder applications within each category with a smooth drag-and-drop experience.
 *   **🤖 Automatic Data Fetching:** When adding a new link, the application automatically fetches the site name and favicon to simplify the process.
 *   **🔄 Import and Export:** Save all your data (applications and categories) to a JSON file for backup or import, ensuring your data is never lost.
-*   **🔐 Local Storage:** All your data is securely stored in your browser's local storage for privacy and speed.
+*   **🗄️ IndexedDB with Dexie.js:** All your data is securely stored in your browser's IndexedDB, managed by Dexie.js for high performance and reliability.
 
 ---
 
