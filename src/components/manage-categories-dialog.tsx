@@ -196,7 +196,7 @@ const ManageCategoriesDialogContent = ({ onOpenChange, categories, onCategoriesU
       </DialogHeader>
 
       <motion.div custom={1} initial="hidden" animate="visible" variants={motionVariants} className="max-h-[300px] overflow-y-auto my-4 pr-3 scrollbar-hide">
-        <DndContext id={dndId} sensors={sensors} collisionDetector={closestCenter} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
+        <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={handleDragEnd} onDragCancel={() => setActiveId(null)}>
           <SortableContext items={localCategories.map(c => c.id)} strategy={rectSortingStrategy}>
             {localCategories.map(c => (
               <SortableItem key={c.id} id={c.id} isDragging={activeId === c.id}>
