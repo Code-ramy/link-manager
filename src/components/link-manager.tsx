@@ -68,28 +68,28 @@ export function LinkManager() {
         className="hidden"
       />
       <header className="fixed top-0 left-0 w-full bg-black/50 backdrop-blur-xl border-b border-white/10 z-30">
-        <div className="w-full px-4 sm:px-10 lg:px-12 flex items-center justify-between h-20">
-          <div className="flex items-center gap-4">
-            <Logo width={48} height={48} />
-            <h1 className="text-2xl font-sans relative">
+        <div className="w-full px-4 sm:px-10 lg:px-12 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <Logo width={36} height={36} />
+            <h1 className="text-xl font-sans relative">
               <span className="font-bold text-white">Link</span>
               <span className="text-blue-500 hidden sm:inline"> Manager</span>
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
+            <Button size="sm" variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={() => importFileInputRef.current?.click()}>
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Import</span>
             </Button>
-            <Button variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
+            <Button size="sm" variant="outline" className="rounded-2xl text-white bg-white/10 border-white/20 hover:bg-white/20" onClick={handleExport}>
               <Upload className="h-4 w-4" />
               <span className="hidden sm:inline">Export</span>
             </Button>
-            <Button className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
+            <Button size="sm" className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={() => setIsManageCategoriesOpen(true)}>
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Manage Categories</span>
             </Button>
-            <Button className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={handleOpenAddDialog}>
+            <Button size="sm" className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground hover:brightness-110 shadow-lg" onClick={handleOpenAddDialog}>
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Add App</span>
             </Button>
@@ -98,8 +98,8 @@ export function LinkManager() {
       </header>
 
       <DropZone onUrlDrop={handleUrlDrop}>
-        <main className="pt-20 flex flex-col h-screen">
-          <div className="sticky top-20 z-20 pt-12 pb-4">
+        <main className="pt-16 flex flex-col h-screen">
+          <div className="sticky top-16 z-20 pt-8 pb-4">
             <CategoryFilter 
                 currentFilter={currentFilter}
                 onFilterChange={setCurrentFilter}
