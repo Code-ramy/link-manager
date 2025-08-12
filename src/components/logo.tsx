@@ -21,13 +21,13 @@ export function Logo({ width = 36, height = 36, ...props }: React.SVGProps<SVGSV
       <path d="M137.11 155.03C139.857 155.03 142.085 152.802 142.085 150.055C142.085 147.307 139.857 145.08 137.11 145.08C134.362 145.08 132.134 147.307 132.134 150.055C132.134 152.802 134.362 155.03 137.11 155.03Z" fill="#3B82F6"/>
       <defs>
       <linearGradient id="paint0_linear_86_44" x1="-25" y1="-24.9998" x2="24975" y2="24975" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1E3A8A"/>
-      <stop offset="0.5" stop-color="#2563EB"/>
-      <stop offset="1" stop-color="#3B82F6"/>
+      <stop stopColor="#1E3A8A"/>
+      <stop offset="0.5" stopColor="#2563EB"/>
+      <stop offset="1" stopColor="#3B82F6"/>
       </linearGradient>
       <linearGradient id="paint1_linear_86_44" x1="-25" y1="-24.9998" x2="24975" y2="24975" gradientUnits="userSpaceOnUse">
-      <stop stop-color="white" stop-opacity="0.15"/>
-      <stop offset="1" stop-color="white" stop-opacity="0.05"/>
+      <stop stopColor="white" stopOpacity="0.15"/>
+      <stop offset="1" stopColor="white" stopOpacity="0.05"/>
       </linearGradient>
       </defs>
     </svg>
