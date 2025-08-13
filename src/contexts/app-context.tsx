@@ -15,10 +15,10 @@ type SetCategoriesFunction = (
 
 interface AppContextType {
   apps: WebApp[];
-  setApps: (apps: WebApp[]) => Promise<void>;
+  setApps: (apps: WebApp[], currentFilter: string) => Promise<void>;
   categories: Category[];
   setCategories: SetCategoriesFunction;
-  handleSaveApp: (appData: Omit<WebApp, 'id' | 'order'> & { id?: string }) => Promise<void>;
+  handleSaveApp: (appData: Omit<WebApp, 'id' | 'globalOrder' | 'categoryOrder'> & { id?: string }) => Promise<void>;
   handleDeleteApp: (appId: string) => Promise<void>;
   handleExport: () => void;
   handleImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -31,7 +31,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const [hasMounted, setHasMounted] = useState(false);
 
-  const apps = useLiveQuery(() => db.apps.orderBy('order').toArray(), []);
+  const apps = useLiveQuery(() => db.apps.orderBy('globalOrder').toArray(), []);
   const categories = useLiveQuery(() => db.categories.orderBy('order').toArray(), []);
 
   useEffect(() => {
@@ -40,10 +40,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [apps, categories]);
 
-  const setApps = async (newApps: WebApp[]) => {
+  const setApps = async (newApps: WebApp[], currentFilter: string) => {
     try {
-      const updatedApps = newApps.map((app, index) => ({ ...app, order: index }));
-      await db.apps.bulkPut(updatedApps);
+      if (currentFilter === 'all') {
+        const updatedApps = newApps.map((app, index) => ({ ...app, globalOrder: index }));
+        await db.apps.bulkPut(updatedApps);
+      } else {
+        const categoryId = currentFilter;
+        const updatedApps = newApps.map((app, index) => ({
+          ...app,
+          categoryOrder: {
+            ...app.categoryOrder,
+            [categoryId]: index,
+          },
+        }));
+        await db.apps.bulkPut(updatedApps);
+      }
     } catch (error) {
       console.error("Failed to reorder apps in DB:", error);
       toast({ title: 'Error', description: 'Could not save new order.', variant: 'destructive' });
@@ -71,6 +83,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       await db.transaction('rw', db.categories, db.apps, async () => {
         if (deletedCategoryIds.length > 0) {
+          const appsToUpdate = await db.apps.where('categoryId').anyOf(deletedCategoryIds).toArray();
+          for (const app of appsToUpdate) {
+            for (const catId of deletedCategoryIds) {
+              delete app.categoryOrder[catId];
+            }
+            await db.apps.put(app);
+          }
           await db.apps.where('categoryId').anyOf(deletedCategoryIds).delete();
           
           if (currentFilter && onFilterChange && deletedCategoryIds.includes(currentFilter)) {
@@ -98,17 +117,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [categories, toast]);
 
 
-  const handleSaveApp = async (appData: Omit<WebApp, 'id' | 'order'> & { id?: string }) => {
+  const handleSaveApp = async (appData: Omit<WebApp, 'id' | 'globalOrder' | 'categoryOrder'> & { id?: string }) => {
     try {
       if (appData.id) {
         await db.apps.update(appData.id, appData);
         toast({ title: "Updated successfully!", variant: "success" });
       } else {
-        const newOrder = (apps?.length || 0);
+        const newGlobalOrder = (apps?.length || 0);
+        const appsInCategory = apps?.filter(app => app.categoryId === appData.categoryId) || [];
+        const newCategoryOrder = appsInCategory.length;
+
         await db.apps.add({
           ...appData,
           id: crypto.randomUUID(),
-          order: newOrder
+          globalOrder: newGlobalOrder,
+          categoryOrder: { [appData.categoryId]: newCategoryOrder },
         });
         toast({ title: "Added successfully!", variant: "success" });
       }
@@ -165,38 +188,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (typeof text !== 'string') throw new Error("Could not read the file.");
         const importedData = JSON.parse(text);
 
-        if (Array.isArray(importedData.apps)) {
-          importedData.apps.forEach((item: any, index: number) => {
-            if (typeof item.order !== 'number') {
-              item.order = index;
-            }
-          });
-        }
-        if (Array.isArray(importedData.categories)) {
-          importedData.categories.forEach((item: any, index: number) => {
-            if (typeof item.order !== 'number') {
-              item.order = index;
-            }
-          });
-        }
-
         const isValidWebApp = (item: any): item is WebApp => 
             typeof item === 'object' && item !== null &&
             'id' in item && 'name' in item && 'url' in item && 
-            'icon' in item && 'categoryId' in item && typeof item.order === 'number';
+            'icon' in item && 'categoryId' in item && 
+            ('order' in item || ('globalOrder' in item && 'categoryOrder' in item));
         
         const isValidCategory = (item: any): item is Category =>
             typeof item === 'object' && item !== null &&
             'id' in item && 'name' in item && 'icon' in item && typeof item.order === 'number';
 
         if (Array.isArray(importedData.apps) && Array.isArray(importedData.categories) &&
-            importedData.apps.every(isValidWebApp) &&
             importedData.categories.every(isValidCategory)) 
         {
+          const appsToImport = importedData.apps.map((item: any, index: number) => {
+              if ('order' in item && !('globalOrder' in item)) {
+                  item.globalOrder = item.order;
+                  item.categoryOrder = { [item.categoryId]: item.order };
+                  delete item.order;
+              }
+              if (!isValidWebApp(item)) {
+                  throw new Error(`Invalid app data for item at index ${index}`);
+              }
+              return item;
+          });
+
           await db.transaction('rw', db.apps, db.categories, async () => {
             await db.apps.clear();
             await db.categories.clear();
-            await db.apps.bulkAdd(importedData.apps);
+            await db.apps.bulkAdd(appsToImport);
             await db.categories.bulkAdd(importedData.categories);
           });
           toast({ title: 'Import Successful', description: 'Your data has been restored.', variant: 'success' });

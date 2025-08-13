@@ -116,8 +116,18 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
   const [droppedId, setDroppedId] = useState<string | null>(null);
 
   useEffect(() => {
-    setOrderedApps(appsToRender);
-  }, [appsToRender]);
+    let sortedApps;
+    if (currentFilter === 'all') {
+      sortedApps = [...appsToRender].sort((a, b) => a.globalOrder - b.globalOrder);
+    } else {
+      sortedApps = [...appsToRender].sort((a, b) => {
+        const orderA = a.categoryOrder?.[currentFilter] ?? a.globalOrder;
+        const orderB = b.categoryOrder?.[currentFilter] ?? b.globalOrder;
+        return orderA - orderB;
+      });
+    }
+    setOrderedApps(sortedApps);
+  }, [appsToRender, currentFilter]);
 
   const isDragging = !!activeApp;
 
@@ -141,7 +151,7 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
         setOrderedApps(newOrder); // Optimistic update for UI
-        setApps(newOrder); // Update database in the background
+        setApps(newOrder, currentFilter); // Update database in the background
         setDroppedId(active.id as string);
         setTimeout(() => setDroppedId(null), 400);
       }
