@@ -51,7 +51,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             </div>
           </a>
         </div>
-        <p className="text-base text-white w-28 break-words">{app.name}</p>
+        <p className="text-[15px] text-white w-28 break-words">{app.name}</p>
       </div>
       
       <div className={cn(
