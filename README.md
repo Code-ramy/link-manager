@@ -1,19 +1,8 @@
 # 🔗 Link Manager Application
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience. ✨
-=======
-"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience.
-=======
-"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience. ✨
->>>>>>> 49cbbbe (update readme.md)
-=======
-"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience.
->>>>>>> dbbd2de (logo)
-
----
+"Link Manager" is a modern and elegant interface for organizing your favorite web applications and links in one place. It's designed to be fast, interactive, and easy to use, with a focus on an enjoyable user experience. ✨ 
+======= 
 
 ### 🚀 Key Features and Functionality
 
