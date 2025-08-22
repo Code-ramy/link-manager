@@ -14,7 +14,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
   return (
     <div className="group flex flex-row items-start gap-0">
       <div className={cn(
-        "flex flex-col items-center gap-2 text-center w-20",
+        "flex flex-col items-center gap-2 text-center w-24",
         !isDragging && "transition-transform duration-200 ease-in-out group-hover:-translate-y-1",
         isDropped && 'animate-jiggle'
       )}>
@@ -51,7 +51,7 @@ export const AppIcon = ({ app, onEdit, onDelete, isDragging, isDropped }: { app:
             </div>
           </a>
         </div>
-        <p className="text-base text-white w-24 truncate">{app.name}</p>
+        <p className="text-base text-white w-28 break-words">{app.name}</p>
       </div>
       
       <div className={cn(
