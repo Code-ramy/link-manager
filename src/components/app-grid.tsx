@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { WebApp } from '@/lib/types';
@@ -107,12 +107,13 @@ interface AppGridProps {
   onDelete: (app: WebApp) => void;
   onAddApp: () => void;
   currentFilter: string;
+  isDragging: boolean;
+  setActiveApp: (app: WebApp | null) => void;
 }
 
-export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
+export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter, isDragging, setActiveApp }: AppGridProps) {
   const { setApps, hasMounted } = useAppContext();
   const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
-  const [activeApp, setActiveApp] = useState<WebApp | null>(null);
   const [droppedId, setDroppedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -128,8 +129,6 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
     }
     setOrderedApps(sortedApps);
   }, [appsToRender, currentFilter]);
-
-  const isDragging = !!activeApp;
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: {
@@ -212,17 +211,6 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
             </motion.div>
           </AnimatePresence>
         </SortableContext>
-
-        <DragOverlay>
-          {activeApp ? (
-            <AppIcon
-              app={activeApp}
-              onEdit={() => { }}
-              onDelete={() => { }}
-              isDragging
-            />
-          ) : null}
-        </DragOverlay>
       </DndContext>
     </div>
   );

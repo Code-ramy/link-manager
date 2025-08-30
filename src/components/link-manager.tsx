@@ -5,6 +5,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { Upload, Download, Settings, Plus } from "lucide-react";
 import type { Category, WebApp } from '@/lib/types';
+import { DragOverlay } from '@dnd-kit/core';
 
 import { AppGrid } from '@/components/app-grid';
 import { CategoryFilter } from '@/components/category-filter';
@@ -15,6 +16,7 @@ import { ManageCategoriesDialog } from '@/components/manage-categories-dialog';
 import { Button } from "@/components/ui/button";
 import { Logo } from '@/components/logo';
 import { DropZone } from '@/components/drop-zone';
+import { AppIcon } from './app-icon';
 
 export function LinkManager() {
   const { apps, categories, hasMounted, handleExport, handleImport, setCategories, handleDeleteApp } = useAppContext();
@@ -26,8 +28,10 @@ export function LinkManager() {
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const importFileInputRef = useRef<HTMLInputElement>(null);
   const [urlToAutoFill, setUrlToAutoFill] = useState<string | undefined>(undefined);
+  const [activeApp, setActiveApp] = useState<WebApp | null>(null);
   
   const appsToRender = apps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
+  const isDragging = !!activeApp;
 
   const handleOpenAddDialog = useCallback(() => {
     setEditingApp(null);
@@ -67,7 +71,7 @@ export function LinkManager() {
         onChange={handleImport}
         className="hidden"
       />
-      <header className="fixed top-0 left-0 w-full bg-black/50 backdrop-blur-xl border-b border-white/10 z-30">
+      <header className="fixed top-0 left-0 w-full bg-black/40 backdrop-blur-xl border-b border-white/10 z-30">
         <div className="w-full px-4 sm:px-10 lg:px-12 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Logo width={36} height={36} />
@@ -117,12 +121,25 @@ export function LinkManager() {
                       onDelete={setAppToDelete}
                       onAddApp={handleOpenAddDialog}
                       currentFilter={currentFilter}
+                      isDragging={isDragging}
+                      setActiveApp={setActiveApp}
                     />
                   )}
               </div>
           </div>
         </main>
       </DropZone>
+
+      <DragOverlay>
+          {activeApp ? (
+            <AppIcon
+              app={activeApp}
+              onEdit={() => { }}
+              onDelete={() => { }}
+              isDragging
+            />
+          ) : null}
+      </DragOverlay>
 
       <EditAppDialog
         open={isEditAppOpen}
