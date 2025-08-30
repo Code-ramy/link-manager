@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { DndContext, closestCenter, DragStartEvent, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { WebApp } from '@/lib/types';
@@ -102,65 +101,53 @@ const SortableItem = ({ id, children }: { id: string | number, children: React.R
 };
 
 interface AppGridProps {
-  appsToRender: WebApp[];
   onEdit: (app: WebApp) => void;
   onDelete: (app: WebApp) => void;
   onAddApp: () => void;
   currentFilter: string;
   isDragging: boolean;
-  setActiveApp: (app: WebApp | null) => void;
 }
 
-export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilter, isDragging, setActiveApp }: AppGridProps) {
-  const { setApps, hasMounted } = useAppContext();
-  const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
+export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter, isDragging }: AppGridProps) {
+  const { apps, setApps, hasMounted } = useAppContext();
+  const [orderedApps, setOrderedApps] = useState<WebApp[]>(apps);
   const [droppedId, setDroppedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOrderedApps(apps);
+  }, [apps]);
+
+  const appsToDisplay = orderedApps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
 
   useEffect(() => {
     let sortedApps;
     if (currentFilter === 'all') {
-      sortedApps = [...appsToRender].sort((a, b) => a.globalOrder - b.globalOrder);
+      sortedApps = [...appsToDisplay].sort((a, b) => a.globalOrder - b.globalOrder);
     } else {
-      sortedApps = [...appsToRender].sort((a, b) => {
+      sortedApps = [...appsToDisplay].sort((a, b) => {
         const orderA = a.categoryOrder?.[currentFilter] ?? a.globalOrder;
         const orderB = b.categoryOrder?.[currentFilter] ?? b.globalOrder;
         return orderA - orderB;
       });
     }
-    setOrderedApps(sortedApps);
-  }, [appsToRender, currentFilter]);
+  }, [appsToDisplay, currentFilter]);
 
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 5,
-    },
-  }));
 
-  const handleAppDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveApp(orderedApps.find(app => app.id === active.id) || null);
-  };
-
-  const handleAppDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = orderedApps.findIndex(app => app.id === active.id);
-      const newIndex = orderedApps.findIndex(app => app.id === over.id);
+  const handleDragEnd = (activeId: string, overId: string | null) => {
+    if (overId && activeId !== overId) {
+      const oldIndex = orderedApps.findIndex(app => app.id === activeId);
+      const newIndex = orderedApps.findIndex(app => app.id === overId);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
         setOrderedApps(newOrder); // Optimistic update for UI
         setApps(newOrder, currentFilter); // Update database in the background
-        setDroppedId(active.id as string);
+        setDroppedId(activeId as string);
         setTimeout(() => setDroppedId(null), 400);
       }
     }
-    setActiveApp(null);
   };
 
-  const handleAppDragCancel = () => {
-    setActiveApp(null);
-  }
 
   if (!hasMounted) {
     return (
@@ -175,43 +162,35 @@ export function AppGrid({ appsToRender, onEdit, onDelete, onAddApp, currentFilte
     );
   }
 
-  if (orderedApps.length === 0) {
+  if (appsToDisplay.length === 0) {
     return <CategoryEmptyState onAddApp={onAddApp} />
   }
 
   return (
     <div className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleAppDragStart}
-        onDragEnd={handleAppDragEnd}
-        onDragCancel={handleAppDragCancel}
-      >
-        <SortableContext items={orderedApps.map(a => a.id)} strategy={rectSortingStrategy}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentFilter}
-              className="grid grid-cols-7 gap-12 justify-items-center"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-            >
-              {orderedApps.map((app) => (
-                <SortableItem key={app.id} id={app.id}>
-                  <AppIcon
-                    app={app}
-                    onEdit={() => onEdit(app)}
-                    onDelete={() => onDelete(app)}
-                    isDropped={droppedId === app.id}
-                  />
-                </SortableItem>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </SortableContext>
-      </DndContext>
+      <SortableContext items={appsToDisplay.map(a => a.id)} strategy={rectSortingStrategy}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentFilter}
+            className="grid grid-cols-7 gap-12 justify-items-center"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            {appsToDisplay.map((app) => (
+              <SortableItem key={app.id} id={app.id}>
+                <AppIcon
+                  app={app}
+                  onEdit={() => onEdit(app)}
+                  onDelete={() => onDelete(app)}
+                  isDropped={droppedId === app.id}
+                />
+              </SortableItem>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </SortableContext>
     </div>
   );
 }
