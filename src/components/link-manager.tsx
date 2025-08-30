@@ -106,7 +106,7 @@ export function LinkManager() {
             />
           </div>
           
-          <div className="flex-grow overflow-y-auto pt-2 scrollbar-hide">
+          <div className="flex-grow overflow-y-auto pt-2 scrollbar-hide [mask-image:linear-gradient(to_bottom,transparent,black_1rem,black_calc(100%-2rem),transparent)]">
               <div className="w-full max-w-7xl mx-auto px-4">
                   {hasMounted && apps.length === 0 && categories.length === 0 ? (
                     <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
