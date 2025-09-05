@@ -220,18 +220,16 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
           </AnimatePresence>
         </SortableContext>
       </div>
-      <DialogPortal>
-        <DragOverlay>
-            {activeApp ? (
-              <AppIcon
-                app={activeApp}
-                onEdit={() => { }}
-                onDelete={() => { }}
-                isDragging
-              />
-            ) : null}
-        </DragOverlay>
-      </DialogPortal>
+      <DragOverlay>
+          {activeApp ? (
+            <AppIcon
+              app={activeApp}
+              onEdit={() => { }}
+              onDelete={() => { }}
+              isDragging
+            />
+          ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
