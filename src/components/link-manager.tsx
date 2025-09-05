@@ -4,8 +4,6 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { Upload, Download, Settings, Plus } from "lucide-react";
 import type { Category, WebApp } from '@/lib/types';
-import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import { AppGrid } from '@/components/app-grid';
 import { CategoryFilter } from '@/components/category-filter';
 import { DeleteAppDialog } from '@/components/delete-app-dialog';
@@ -15,7 +13,6 @@ import { ManageCategoriesDialog } from '@/components/manage-categories-dialog';
 import { Button } from "@/components/ui/button";
 import { Logo } from '@/components/logo';
 import { DropZone } from '@/components/drop-zone';
-import { AppIcon } from './app-icon';
 
 export function LinkManager() {
   const { apps, categories, hasMounted, handleExport, handleImport, setCategories, setApps, handleDeleteApp } = useAppContext();
@@ -27,41 +24,7 @@ export function LinkManager() {
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const importFileInputRef = useRef<HTMLInputElement>(null);
   const [urlToAutoFill, setUrlToAutoFill] = useState<string | undefined>(undefined);
-  const [activeApp, setActiveApp] = useState<WebApp | null>(null);
   
-  const isDragging = !!activeApp;
-  
-  const getAppById = (id: string | null) => apps.find(app => app.id === id);
-
-  const sensors = useSensors(useSensor(PointerSensor, {
-    activationConstraint: {
-      distance: 5,
-    },
-  }));
-  
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveApp(getAppById(active.id as string) || null);
-  };
-  
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = apps.findIndex(app => app.id === active.id);
-      const newIndex = apps.findIndex(app => app.id === over.id);
-
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newOrder = arrayMove(apps, oldIndex, newIndex);
-        setApps(newOrder, currentFilter); 
-      }
-    }
-    setActiveApp(null);
-  };
-
-  const handleDragCancel = () => {
-    setActiveApp(null);
-  }
-
   const handleOpenAddDialog = useCallback(() => {
     setEditingApp(null);
     setUrlToAutoFill(undefined);
@@ -131,48 +94,29 @@ export function LinkManager() {
       </header>
 
       <DropZone onUrlDrop={handleUrlDrop}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-        >
-          <main className="pt-16 flex flex-col h-screen">
-            <div className="sticky top-16 z-20 pt-8 pb-4">
-              <CategoryFilter 
-                  currentFilter={currentFilter}
-                  onFilterChange={setCurrentFilter}
-              />
-            </div>
-            
-            <div className="flex-grow overflow-y-auto pt-2 scrollbar-hide [mask-image:linear-gradient(to_bottom,transparent,black_1rem,black_calc(100%-2rem),transparent)]">
-                <div className="w-full max-w-7xl mx-auto px-4">
-                    {hasMounted && apps.length === 0 && categories.length === 0 ? (
-                      <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
-                    ) : (
-                      <AppGrid
-                        onEdit={handleOpenEditDialog}
-                        onDelete={setAppToDelete}
-                        onAddApp={handleOpenAddDialog}
-                        currentFilter={currentFilter}
-                        isDragging={isDragging}
-                      />
-                    )}
-                </div>
-            </div>
-          </main>
-          <DragOverlay>
-              {activeApp ? (
-                <AppIcon
-                  app={activeApp}
-                  onEdit={() => { }}
-                  onDelete={() => { }}
-                  isDragging
-                />
-              ) : null}
-          </DragOverlay>
-        </DndContext>
+        <main className="pt-16 flex flex-col h-screen">
+          <div className="sticky top-16 z-20 pt-8 pb-4">
+            <CategoryFilter 
+                currentFilter={currentFilter}
+                onFilterChange={setCurrentFilter}
+            />
+          </div>
+          
+          <div className="flex-grow overflow-y-auto pt-2 scrollbar-hide [mask-image:linear-gradient(to_bottom,transparent,black_1rem,black_calc(100%-2rem),transparent)]">
+              <div className="w-full max-w-7xl mx-auto px-4">
+                  {hasMounted && apps.length === 0 && categories.length === 0 ? (
+                    <EmptyState onAddApp={handleOpenAddDialog} onAddCategory={() => setIsManageCategoriesOpen(true)} />
+                  ) : (
+                    <AppGrid
+                      onEdit={handleOpenEditDialog}
+                      onDelete={setAppToDelete}
+                      onAddApp={handleOpenAddDialog}
+                      currentFilter={currentFilter}
+                    />
+                  )}
+              </div>
+          </div>
+        </main>
       </DropZone>
 
 
