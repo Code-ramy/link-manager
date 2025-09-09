@@ -12,7 +12,6 @@ import { useAppContext } from '@/contexts/app-context';
 import { CategoryEmptyState } from './category-empty-state';
 import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { DialogPortal } from './ui/dialog';
 
 // ==== تحسين متغيرات الأنيميشن لجعلها انسيابية وناعمة ====
 const containerVariants = {
@@ -112,7 +111,7 @@ interface AppGridProps {
 
 export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridProps) {
   const { apps, setApps, hasMounted } = useAppContext();
-  const [orderedApps, setOrderedApps] = useState<WebApp[]>(apps);
+  const [orderedApps, setOrderedApps] = useState<WebApp[]>([]);
   const [droppedId, setDroppedId] = useState<string | null>(null);
   const [activeApp, setActiveApp] = useState<WebApp | null>(null);
 
@@ -126,23 +125,20 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
   }));
   
   useEffect(() => {
-    setOrderedApps(apps);
-  }, [apps]);
-
-  const appsToDisplay = orderedApps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
-
-  useEffect(() => {
     let sortedApps;
+    const filteredApps = apps.filter(app => currentFilter === 'all' || app.categoryId === currentFilter);
+
     if (currentFilter === 'all') {
-      sortedApps = [...appsToDisplay].sort((a, b) => a.globalOrder - b.globalOrder);
+      sortedApps = [...filteredApps].sort((a, b) => a.globalOrder - b.globalOrder);
     } else {
-      sortedApps = [...appsToDisplay].sort((a, b) => {
+      sortedApps = [...filteredApps].sort((a, b) => {
         const orderA = a.categoryOrder?.[currentFilter] ?? a.globalOrder;
         const orderB = b.categoryOrder?.[currentFilter] ?? b.globalOrder;
         return orderA - orderB;
       });
     }
-  }, [appsToDisplay, currentFilter]);
+    setOrderedApps(sortedApps);
+  }, [apps, currentFilter]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -154,7 +150,7 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
     if (over && active.id !== over.id) {
       const oldIndex = orderedApps.findIndex(app => app.id === active.id);
       const newIndex = orderedApps.findIndex(app => app.id === over.id);
-
+      
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(orderedApps, oldIndex, newIndex);
         setOrderedApps(newOrder); // Optimistic update for UI
@@ -183,7 +179,7 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
     );
   }
 
-  if (appsToDisplay.length === 0) {
+  if (orderedApps.length === 0) {
     return <CategoryEmptyState onAddApp={onAddApp} />
   }
 
@@ -196,7 +192,7 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
       onDragCancel={handleDragCancel}
     >
       <div className={cn("pb-20", isDragging && '[&_a]:pointer-events-none')}>
-        <SortableContext items={appsToDisplay.map(a => a.id)} strategy={rectSortingStrategy}>
+        <SortableContext items={orderedApps.map(a => a.id)} strategy={rectSortingStrategy}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentFilter}
@@ -206,7 +202,7 @@ export function AppGrid({ onEdit, onDelete, onAddApp, currentFilter }: AppGridPr
               animate="visible"
               exit="hidden"
             >
-              {appsToDisplay.map((app) => (
+              {orderedApps.map((app) => (
                 <SortableItem key={app.id} id={app.id}>
                   <AppIcon
                     app={app}

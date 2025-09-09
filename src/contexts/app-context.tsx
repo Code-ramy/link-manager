@@ -40,14 +40,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [apps, categories]);
 
-  const setApps = async (newApps: WebApp[], currentFilter: string) => {
+  const setApps = async (orderedApps: WebApp[], currentFilter: string) => {
     try {
       if (currentFilter === 'all') {
-        const updatedApps = newApps.map((app, index) => ({ ...app, globalOrder: index }));
+        const updatedApps = orderedApps.map((app, index) => ({
+          ...app,
+          globalOrder: index,
+        }));
         await db.apps.bulkPut(updatedApps);
       } else {
         const categoryId = currentFilter;
-        const updatedApps = newApps.map((app, index) => ({
+        const updatedApps = orderedApps.map((app, index) => ({
           ...app,
           categoryOrder: {
             ...app.categoryOrder,
